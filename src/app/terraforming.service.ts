@@ -1,7 +1,7 @@
 
 import { Injectable } from '@angular/core';
 import { MAX_LEVEL, CellData } from './model/map';
-import { GlobalMapService } from './global-map.service';
+import { MapService } from './map.service';
 
 
 /**
@@ -18,29 +18,29 @@ export interface TerraformingTool {
 })
 export class TerraformingService {
     readonly CLIFF_TOOLS: TerraformingTool[] = [
-        new CliffBuilder(this.globalMap, 3),
-        new CliffBuilder(this.globalMap, 2),
-        new CliffBuilder(this.globalMap, 1),
-        new CliffCollapser(this.globalMap, 2),
-        new CliffCollapser(this.globalMap, 1),
-        new CliffCollapser(this.globalMap, 0),
+        new CliffBuilder(this.map, 3),
+        new CliffBuilder(this.map, 2),
+        new CliffBuilder(this.map, 1),
+        new CliffCollapser(this.map, 2),
+        new CliffCollapser(this.map, 1),
+        new CliffCollapser(this.map, 0),
         new NopTool(),
     ];
 
     readonly RIVER_TOOLS: TerraformingTool[] = [
-        new RiverDigger(this.globalMap),
-        new RiverReclaimer(this.globalMap),
+        new RiverDigger(this.map),
+        new RiverReclaimer(this.map),
         new NopTool(),
     ];
 
     readonly PATH_TOOLS: TerraformingTool[] = [
-        new PathPaver(this.globalMap),
-        new PathPeeler(this.globalMap),
+        new PathPaver(this.map),
+        new PathPeeler(this.map),
         new NopTool(),
     ];
 
     constructor(
-        private globalMap: GlobalMapService,
+        private map: MapService,
     ) { }
 
     // public road() {}
@@ -54,12 +54,12 @@ export class TerraformingService {
     //     }
     //
     //     // 4隣接の隣り合う二つが同じ高さ、残りが崖下なら
-    //     let cell = this.globalMap.getCell(x, y);
+    //     let cell = this.map.getCell(x, y);
     //     if (cell.corner !== null) {
     //         return false;
     //     }
     //
-    //     let n4 = this.globalMap.getNeighbours4(x, y);
+    //     let n4 = this.map.getNeighbours4(x, y);
     //     return Object.values(n4).filter((c: CellData) => {
     //         return c.level == cell.level;
     //     }).length == 2 && Object.values(n4).filter((c: CellData) => {
@@ -72,8 +72,8 @@ export class TerraformingService {
      */
     // private cornerCliff(x: number, y: number): void {
     //     // TODO 周囲の処理
-    //     let cell = this.globalMap.getCell(x, y);
-    //     let n4 = this.globalMap.getNeighbours4(x, y);
+    //     let cell = this.map.getCell(x, y);
+    //     let n4 = this.map.getNeighbours4(x, y);
     //     if (n4.n.level < cell.level && n4.w.level < cell.level) {
     //         cell.corner = 'NW';
     //     } else if (n4.n.level < cell.level && n4.e.level < cell.level) {
@@ -83,7 +83,7 @@ export class TerraformingService {
     //     } else if (n4.s.level < cell.level && n4.e.level < cell.level) {
     //         cell.corner = 'SE';
     //     }
-    //     this.globalMap.invalidate({x: x, y: y, width: 1, height: 1});
+    //     this.map.invalidate({x: x, y: y, width: 1, height: 1});
     // }
 }
 
@@ -101,9 +101,9 @@ class NopTool implements TerraformingTool {
 }
 
 class MapToolBase {
-    protected map: GlobalMapService;
+    protected map: MapService;
 
-    constructor(map: GlobalMapService) {
+    constructor(map: MapService) {
         this.map = map;
     }
 }
@@ -114,7 +114,7 @@ class MapToolBase {
 class CliffBuilder extends MapToolBase implements TerraformingTool {
     private level: number;
 
-    constructor(map: GlobalMapService, level: number) {
+    constructor(map: MapService, level: number) {
         super(map);
         this.level = level;
     }
@@ -156,7 +156,7 @@ class CliffBuilder extends MapToolBase implements TerraformingTool {
 class CliffCollapser extends MapToolBase implements TerraformingTool {
     private level: number;
 
-    constructor(map: GlobalMapService, level: number) {
+    constructor(map: MapService, level: number) {
         super(map);
         this.level = level;
     }

@@ -1,7 +1,7 @@
 
 import { Injectable } from '@angular/core';
 import { MAP_SIZE, CELL_COLOR } from './model/map';
-import { GlobalMapService } from './global-map.service';
+import { MapService } from './map.service';
 
 const IMAGE_MAP_RECT = {x: 355, y: 118, width: 598, height: 512};
 
@@ -11,7 +11,7 @@ const IMAGE_MAP_RECT = {x: 355, y: 118, width: 598, height: 512};
 export class ImageImporterService {
 
     constructor(
-        private globalMap: GlobalMapService
+        private map: MapService
     ) { }
 
     public importImage(image: HTMLImageElement) {
@@ -23,7 +23,7 @@ export class ImageImporterService {
         ctx.drawImage(image, 0, 0);
         let pd = ctx.getImageData(0, 0, image.width, image.height);
 
-        this.globalMap.reset();
+        this.map.reset();
 
         for (let y=0; y<MAP_SIZE.height; y++) {
             for (let x=0; x<MAP_SIZE.width; x++) {
@@ -32,7 +32,7 @@ export class ImageImporterService {
                 let i = (iy * image.width + ix) * 4;
                 let r = pd.data[i + 0], g = pd.data[i + 1], b = pd.data[i + 2];
 
-                let cell = this.globalMap.getCell(x, y);
+                let cell = this.map.getCell(x, y);
                 cell.level = 0;
                 cell.feature = null;
                 cell.corner = null;
@@ -81,7 +81,7 @@ export class ImageImporterService {
                 }
             }
         }
-        this.globalMap.invalidate({x: 0, y: 0, width: MAP_SIZE.width, height: MAP_SIZE.height});
+        this.map.invalidate({x: 0, y: 0, width: MAP_SIZE.width, height: MAP_SIZE.height});
     }
 
     private getNearestColor(r: number, g: number, b: number, colors: number[]): number {

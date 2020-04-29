@@ -27,7 +27,7 @@ export interface Neighbours8 extends Neighbours4 {
 @Injectable({
     providedIn: 'root'
 })
-export class GlobalMapService {
+export class MapService {
     private mapData: MapData;
     public invalidRect = new Subject<MapRect>();
 

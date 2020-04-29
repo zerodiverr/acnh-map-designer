@@ -2,7 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ViewChild, ElementRef, HostListener, EventEmitter, Output } from '@angular/core';
 import { CellData, MAP_SIZE, CELL_COLOR, MapRect } from '../model/map';
-import { GlobalMapService } from '../global-map.service';
+import { MapService } from '../map.service';
 
 const CELL_SIZE = 8;
 const CELL_PADDING = 2;
@@ -28,9 +28,9 @@ export class GlobalRendererComponent implements OnInit {
     private prevY: number;
 
     constructor(
-        private globalMap: GlobalMapService,
+        private map: MapService,
     ) {
-        globalMap.invalidRect.subscribe(rect => {
+        map.invalidRect.subscribe(rect => {
             this.updateView(rect);
         })
     }
@@ -69,7 +69,7 @@ export class GlobalRendererComponent implements OnInit {
     }
 
     private drawCell(x: number, y: number, ctx: CanvasRenderingContext2D) {
-        let cell = this.globalMap.getCell(x, y);
+        let cell = this.map.getCell(x, y);
         if (cell.terrain == 'SEA') {
             ctx.fillStyle = this.toHex(CELL_COLOR.water);
             ctx.fillRect(0, 0, 1, 1);
@@ -126,7 +126,7 @@ export class GlobalRendererComponent implements OnInit {
 
     private drawFeature(x: number, y: number, ctx: CanvasRenderingContext2D, color: number, isConnected: (c: CellData) => boolean) {
         const cp = CELL_PADDING / CELL_SIZE;
-        let n8 = this.globalMap.getNeighbours8(x, y);
+        let n8 = this.map.getNeighbours8(x, y);
 
         ctx.fillStyle = this.toHex(color);
         ctx.fillRect(cp, cp, 1 - cp * 2, 1 - cp * 2);

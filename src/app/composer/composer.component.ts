@@ -1,7 +1,7 @@
 
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { MatButtonToggleGroup, MatButtonToggleChange } from '@angular/material/button-toggle';
-import { GlobalMapService } from '../global-map.service';
+import { MapService } from '../map.service';
 import { TerraformingService, TerraformingTool } from '../terraforming.service';
 import { ImageImporterService } from '../image-importer.service';
 import { CellClickEvent } from '../global-renderer/global-renderer.component';
@@ -19,7 +19,7 @@ export class ComposerComponent implements OnInit {
     private currentTool: TerraformingTool;
 
     constructor(
-        private globalMap: GlobalMapService,
+        private map: MapService,
         private terraforming: TerraformingService,
         private imageImporter: ImageImporterService,
     ) {
@@ -53,7 +53,7 @@ export class ComposerComponent implements OnInit {
 
     reset() {
         if (confirm('島全体をリセットしますか？')) {
-            this.globalMap.reset();
+            this.map.reset();
         }
     }
 

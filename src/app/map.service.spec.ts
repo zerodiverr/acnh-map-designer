@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 
-import { GlobalMapService } from './global-map.service';
+import { MapService } from './map.service';
 
-describe('GlobalMapService', () => {
+describe('MapService', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
   it('should be created', () => {
-    const service: GlobalMapService = TestBed.get(GlobalMapService);
+    const service: MapService = TestBed.get(MapService);
     expect(service).toBeTruthy();
   });
 });
