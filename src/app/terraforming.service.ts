@@ -17,7 +17,7 @@ export class TerraformingService {
     // public road() {}
 
     public cliff(x: number, y: number) {
-        if (this.canCornerCliff(x, y)) {
+        if (false && this.canCornerCliff(x, y)) {
             this.cornerCliff(x, y);
         } else if (this.canBuildCliff(x, y)) {
             this.buildCliff(x, y);
