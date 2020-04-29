@@ -14,11 +14,11 @@ export interface CellClickEvent {
 }
 
 @Component({
-    selector: 'amd-global-renderer',
-    templateUrl: './global-renderer.component.html',
-    styleUrls: ['./global-renderer.component.less']
+    selector: 'amd-map-renderer',
+    templateUrl: './map-renderer.component.html',
+    styleUrls: ['./map-renderer.component.less']
 })
-export class GlobalRendererComponent implements OnInit {
+export class MapRendererComponent implements OnInit {
     readonly CANVAS_WIDTH = MAP_SIZE.width * CELL_SIZE;
     readonly CANVAS_HEIGHT = MAP_SIZE.height * CELL_SIZE;
     @ViewChild('mapCanvas') mapCanvas: ElementRef<HTMLCanvasElement>;

@@ -1,10 +1,10 @@
 
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatButtonToggleGroup, MatButtonToggleChange } from '@angular/material/button-toggle';
 import { MapService } from '../map.service';
 import { TerraformingService, TerraformingTool } from '../terraforming.service';
 import { ImageImporterService } from '../image-importer.service';
-import { CellClickEvent } from '../global-renderer/global-renderer.component';
+import { CellClickEvent } from '../map-renderer/map-renderer.component';
 
 @Component({
     selector: 'amd-composer',
@@ -14,7 +14,6 @@ import { CellClickEvent } from '../global-renderer/global-renderer.component';
 export class ComposerComponent implements OnInit {
     toolValue = 'cliff';
     @ViewChild('tool') tool: MatButtonToggleGroup;
-    @ViewChild('globalRenderer', {read: ElementRef}) globalRenderer: ElementRef;
 
     private currentTool: TerraformingTool;
 

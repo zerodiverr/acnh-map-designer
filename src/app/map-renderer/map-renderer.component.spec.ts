@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GlobalRendererComponent } from './global-renderer.component';
+import { MapRendererComponent } from './map-renderer.component';
 
-describe('GlobalRendererComponent', () => {
-  let component: GlobalRendererComponent;
-  let fixture: ComponentFixture<GlobalRendererComponent>;
+describe('MapRendererComponent', () => {
+  let component: MapRendererComponent;
+  let fixture: ComponentFixture<MapRendererComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ GlobalRendererComponent ]
+      declarations: [ MapRendererComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GlobalRendererComponent);
+    fixture = TestBed.createComponent(MapRendererComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
