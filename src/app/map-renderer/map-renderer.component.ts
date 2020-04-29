@@ -123,11 +123,10 @@ export class MapRendererComponent implements OnInit {
         this.drawFeature(x, y, ctx, CELL_COLOR.water, isConnected);
     }
 
-    private drawPath(x: number, y: number, ctx: CanvasRenderingContext2D, _: CellData) {
+    private drawPath(x: number, y: number, ctx: CanvasRenderingContext2D, cell: CellData) {
         let isConnected = (n: CellData) => {
             // 道と繋がってるかどうか
-            let c1 = n.terrain == 'LAND' && n.feature == 'PATH';
-            return c1;
+            return n.terrain == 'LAND' && n.level == cell.level && n.feature == 'PATH';
         };
         this.drawFeature(x, y, ctx, CELL_COLOR.path, isConnected);
     }
