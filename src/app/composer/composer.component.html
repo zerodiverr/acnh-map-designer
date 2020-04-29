@@ -1,0 +1,24 @@
+
+<mat-toolbar color="primary">
+  <mat-toolbar-row>
+    <span>ACNH Map Designer</span>
+    <span style="width: 20px;"></span>
+    <mat-button-toggle-group #tool="matButtonToggleGroup" [value]="toolValue">
+      <mat-button-toggle value="river">
+        <img src="assets/river_t.png" width="40" height="40"/>
+      </mat-button-toggle>
+      <mat-button-toggle value="cliff">
+        <img src="assets/cliff_t.png" width="40" height="40"/>
+      </mat-button-toggle>
+    </mat-button-toggle-group>
+    <span style="flex-grow: 1;"></span>
+    <button mat-icon-button (click)="importImage()">
+      <mat-icon>upload_file</mat-icon>
+    </button>
+    <button mat-icon-button color="warn" (click)="reset()">
+      <mat-icon>delete_forever</mat-icon>
+    </button>
+  </mat-toolbar-row>
+</mat-toolbar>
+
+<amd-global-renderer #globalRenderer (cellClick)="cellClick($event)"></amd-global-renderer>
