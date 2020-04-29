@@ -82,15 +82,20 @@ export class GlobalRendererComponent implements OnInit {
         } else if (cell.terrain == 'LAND') {
             ctx.fillStyle = this.toHex(CELL_COLOR.green[cell.level]);
             ctx.fillRect(0, 0, 1, 1);
-            if (cell.corner !== null) {
+            if (cell.rounded) {
+                let n4 = this.map.getNeighbours4(x, y);
+                let n = n4.n.level == cell.level;
+                let w = n4.w.level == cell.level;
+                let e = n4.e.level == cell.level;
+                let s = n4.s.level == cell.level;
                 ctx.fillStyle = this.toHex(CELL_COLOR.green[cell.level - 1]);
-                if (cell.corner === 'NW') {
+                if (s && e) {
                     ctx.fill(new Path2D(`M 1 0 h -1 v 1 Z`));
-                } else if (cell.corner === 'NE') {
+                } else if (s && w) {
                     ctx.fill(new Path2D(`M 0 0 h 1 v 1 Z`));
-                } else if (cell.corner === 'SW') {
+                } else if (n && e) {
                     ctx.fill(new Path2D(`M 0 0 v 1 h 1 Z`));
-                } else if (cell.corner === 'SE') {
+                } else if (n && w) {
                     ctx.fill(new Path2D(`M 1 0 v 1 h -1 Z`));
                 }
             }

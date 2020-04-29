@@ -35,7 +35,7 @@ export class ImageImporterService {
                 let cell = this.map.getCell(x, y);
                 cell.level = 0;
                 cell.feature = null;
-                cell.corner = null;
+                cell.rounded = false;
 
                 let colors = [CELL_COLOR.rock, CELL_COLOR.sand, CELL_COLOR.water, CELL_COLOR.path].concat(CELL_COLOR.green);
                 if (this.isMapEdge(x, y, 1)) {

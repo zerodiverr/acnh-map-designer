@@ -3,7 +3,7 @@ import { Subject } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { MAP_SIZE, CellData, MapRect } from './model/map';
 
-const MAP_DATA_VERSION = 3;
+const MAP_DATA_VERSION = 4;
 
 interface MapData {
     version: number;
@@ -54,7 +54,7 @@ export class MapService {
                     terrain: sea ? 'SEA' : 'LAND',
                     level: 0,
                     feature: null,
-                    corner: null,
+                    rounded: false,
                 });
             }
         }
