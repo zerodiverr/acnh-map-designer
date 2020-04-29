@@ -24,4 +24,4 @@
   </mat-toolbar-row>
 </mat-toolbar>
 
-<amd-map-renderer #mapRenderer (cellClick)="cellClick($event)"></amd-map-renderer>
+<amd-map-renderer *ngIf="map.ready" #mapRenderer (cellClick)="cellClick($event)"></amd-map-renderer>

@@ -43,25 +43,6 @@ export class TerraformingService {
     constructor(
         private map: MapService,
     ) { }
-
-    /**
-     * 崖の角を実行
-     */
-    // private cornerCliff(x: number, y: number): void {
-    //     // TODO 周囲の処理
-    //     let cell = this.map.getCell(x, y);
-    //     let n4 = this.map.getNeighbours4(x, y);
-    //     if (n4.n.level < cell.level && n4.w.level < cell.level) {
-    //         cell.corner = 'NW';
-    //     } else if (n4.n.level < cell.level && n4.e.level < cell.level) {
-    //         cell.corner = 'NE';
-    //     } else if (n4.s.level < cell.level && n4.w.level < cell.level) {
-    //         cell.corner = 'SW';
-    //     } else if (n4.s.level < cell.level && n4.e.level < cell.level) {
-    //         cell.corner = 'SE';
-    //     }
-    //     this.map.invalidate({x: x, y: y, width: 1, height: 1});
-    // }
 }
 
 
@@ -124,7 +105,7 @@ class CliffRounder extends MapToolBase implements TerraformingTool {
         if (!continuous) {
             let cell = this.map.getCell(x, y);
             cell.rounded = true;
-            this.map.invalidate({x: x, y: y, width: 1, height: 1});
+            this.map.setCell(x, y, cell);
         }
     }
 }
@@ -167,15 +148,16 @@ class CliffBuilder extends MapToolBase implements TerraformingTool {
         let cell = this.map.getCell(x, y);
         cell.level++;
         cell.feature = null;
-        this.map.invalidate({x: x, y: y, width: 1, height: 1});
+        this.map.setCell(x, y, cell);
+
         let n4 = this.map.getNeighbours4(x, y);
         Object.values(n4).forEach((n: CellData) => {
             // 4隣接の丸い崖を四角にする
             if (n.terrain == 'LAND' && n.rounded && n.level != 0) {
                 n.rounded = false;
+                this.map.setCell(n.x, n.y, n);
             }
         });
-        this.map.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
     }
 }
 
@@ -217,15 +199,17 @@ class CliffCollapser extends MapToolBase implements TerraformingTool {
         cell.level--;
         cell.feature = null;
         cell.rounded = false;
+        this.map.setCell(x, y, cell);
+
         let n4 = this.map.getNeighbours4(x, y);
         Object.values(n4).forEach((n: CellData) => {
             // 4隣接の丸い崖を崩す
             if (n.terrain == 'LAND' && n.rounded && n.level != 0) {
                 n.rounded = false;
                 n.level--;
+                this.map.setCell(n.x, n.y, n);
             }
         });
-        this.map.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
     }
 }
 
@@ -278,7 +262,7 @@ class RiverDigger extends MapToolBase implements TerraformingTool {
         let cell = this.map.getCell(x, y);
         cell.feature = 'RIVER';
         cell.rounded = false;
-        this.map.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
+        this.map.setCell(x, y, cell, 3);
     }
 }
 
@@ -300,7 +284,7 @@ class RiverReclaimer extends MapToolBase implements TerraformingTool {
         let cell = this.map.getCell(x, y);
         cell.feature = null;
         cell.rounded = false;
-        this.map.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
+        this.map.setCell(x, y, cell, 3);
     }
 }
 
@@ -322,7 +306,7 @@ class PathPaver extends MapToolBase implements TerraformingTool {
     public apply(x: number, y: number, _: boolean): void {
         let cell = this.map.getCell(x, y);
         cell.feature = 'PATH';
-        this.map.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
+        this.map.setCell(x, y, cell, 3);
     }
 }
 
@@ -343,6 +327,6 @@ class PathPeeler extends MapToolBase implements TerraformingTool {
         let cell = this.map.getCell(x, y);
         cell.feature = null;
         cell.rounded = false;
-        this.map.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
+        this.map.setCell(x, y, cell, 3);
     }
 }

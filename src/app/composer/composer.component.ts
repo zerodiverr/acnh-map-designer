@@ -18,7 +18,7 @@ export class ComposerComponent implements OnInit {
     private currentTool: TerraformingTool;
 
     constructor(
-        private map: MapService,
+        public map: MapService,
         private terraforming: TerraformingService,
         private imageImporter: ImageImporterService,
     ) {

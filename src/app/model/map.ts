@@ -26,6 +26,8 @@ export type Level = 0 | 1 | 2 | 3;
 export type Feature = 'RIVER' | 'PATH' | null;
 
 export interface CellData {
+    x: number;
+    y: number;
     terrain: Terrain; // 地形
     // 以下、LANDのみ
     level: Level; // 海抜

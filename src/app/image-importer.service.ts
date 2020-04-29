@@ -79,6 +79,7 @@ export class ImageImporterService {
                         cell.level = 3;
                         break;
                 }
+                this.map.setCell(x, y, cell, 0);
             }
         }
         this.map.invalidate({x: 0, y: 0, width: MAP_SIZE.width, height: MAP_SIZE.height});
