@@ -29,6 +29,7 @@ export class TerraformingService {
     ];
 
     readonly RIVER_TOOLS: TerraformingTool[] = [
+        new RiverRounder(this.map),
         new RiverDigger(this.map),
         new RiverReclaimer(this.map),
         new NopTool(),
@@ -81,20 +82,11 @@ class CliffRounder extends MapToolBase implements TerraformingTool {
             return false;
         }
 
-        // 8隣接に崖上が無い、かつ4隣接に同じ高さの（川や丸崖）がない場合に掘り下げ可能
-        let n8 = this.map.getNeighbours8(x, y);
+        // 4隣接に同じ高さの丸崖がなく、4隣接の隣り合う二つが同じ高さ、残りが崖下なら丸め可能
         let n4 = this.map.getNeighbours4(x, y);
-        let r = Object.values(n8).every((c: CellData) => {
-            return c.level <= cell.level;
-        }) && Object.values(n4).every((c: CellData) => {
-            return !(c.level == cell.level && (c.feature == 'RIVER' || (c.feature === null && c.rounded)));
-        });
-        if (!r) {
-            return false;
-        }
-
-        // 4隣接の隣り合う二つが同じ高さ、残りが崖下なら
-        return Object.values(n4).filter((c: CellData) => {
+        return Object.values(n4).every((c: CellData) => {
+            return !(c.level == cell.level && c.feature === null && c.rounded);
+        }) && Object.values(n4).filter((c: CellData) => {
             return c.level == cell.level;
         }).length == 2 && Object.values(n4).filter((c: CellData) => {
             return c.level == cell.level - 1;
@@ -214,6 +206,50 @@ class CliffCollapser extends MapToolBase implements TerraformingTool {
 }
 
 /**
+ * 川の角を丸める
+ */
+class RiverRounder extends MapToolBase implements TerraformingTool {
+    public available(x: number, y: number): boolean {
+        let cell = this.map.getCell(x, y);
+        let conds = [
+            cell.terrain == 'LAND',
+            cell.feature != 'RIVER',
+            !cell.rounded
+        ];
+        if (!conds.every(c => c)) {
+            return false;
+        }
+
+        let n4 = this.map.getNeighbours4(x, y);
+        // 4隣接の隣り合う二つが同じ高さの川、残りが川でなければ
+        let isConnected = (c: CellData) => {
+            return c.level == cell.level && c.feature == 'RIVER';
+        };
+        return Object.values(n4).filter(isConnected).length == 2 && Object.values(n4).filter((c: CellData) => {
+            return c.feature != 'RIVER';
+        }).length == 2 && isConnected(n4.n) != isConnected(n4.s);
+    }
+
+    public apply(x: number, y: number, continuous: boolean): void {
+        if (!continuous) {
+            let cell = this.map.getCell(x, y);
+            cell.rounded = true;
+            cell.feature = 'RIVER';
+            this.map.setCell(x, y, cell, 3);
+
+            let n4 = this.map.getNeighbours4(x, y);
+            Object.values(n4).forEach((n: CellData) => {
+                // 4隣接の丸い川岸を崩す
+                if (n.terrain == 'LAND' && n.feature == 'RIVER' && n.rounded) {
+                    n.rounded = false;
+                    this.map.setCell(n.x, n.y, n, 3);
+                }
+            });
+        }
+    }
+}
+
+/**
  * 川や滝を作る
  */
 class RiverDigger extends MapToolBase implements TerraformingTool {
@@ -222,7 +258,7 @@ class RiverDigger extends MapToolBase implements TerraformingTool {
         let conds = [
             cell.terrain == 'LAND',
             cell.level < MAX_LEVEL,
-            cell.feature != 'RIVER'
+            cell.feature != 'RIVER' || (cell.feature == 'RIVER' && cell.rounded)
         ];
         if (conds.some(c => !c)) {
             return false;
@@ -263,6 +299,15 @@ class RiverDigger extends MapToolBase implements TerraformingTool {
         cell.feature = 'RIVER';
         cell.rounded = false;
         this.map.setCell(x, y, cell, 3);
+
+        let n4 = this.map.getNeighbours4(x, y);
+        Object.values(n4).forEach((n: CellData) => {
+            // 4隣接の丸い川岸を崩す
+            if (n.terrain == 'LAND' && n.feature == 'RIVER' && n.rounded) {
+                n.rounded = false;
+                this.map.setCell(n.x, n.y, n, 3);
+            }
+        });
     }
 }
 
@@ -285,6 +330,16 @@ class RiverReclaimer extends MapToolBase implements TerraformingTool {
         cell.feature = null;
         cell.rounded = false;
         this.map.setCell(x, y, cell, 3);
+
+        let n4 = this.map.getNeighbours4(x, y);
+        Object.values(n4).forEach((n: CellData) => {
+            // 4隣接の丸い川岸を埋める
+            if (n.terrain == 'LAND' && n.feature == 'RIVER' && n.rounded) {
+                n.feature = null;
+                n.rounded = false;
+                this.map.setCell(n.x, n.y, n, 3);
+            }
+        });
     }
 }
 

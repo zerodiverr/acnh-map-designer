@@ -80,7 +80,8 @@ export class MapRendererComponent implements OnInit {
             ctx.fillStyle = this.toHex(CELL_COLOR.rock);
             ctx.fillRect(0, 0, 1, 1);
         } else if (cell.terrain == 'LAND') {
-            if (cell.rounded) {
+            if (cell.rounded && cell.feature === null) {
+                // 丸崖
                 let n4 = this.map.getNeighbours4(x, y);
                 let n = n4.n.level == cell.level;
                 let w = n4.w.level == cell.level;
@@ -90,13 +91,13 @@ export class MapRendererComponent implements OnInit {
                 ctx.fillRect(0, 0, 1, 1);
                 ctx.fillStyle = this.toHex(CELL_COLOR.green[cell.level]);
                 if (s && e) {
-                    ctx.fill(new Path2D(`M 1 1 h -1 A 1 1 0 0 1 1 0`));
+                    ctx.fill(new Path2D('M 1 1 h -1 A 1 1 0 0 1 1 0'));
                 } else if (s && w) {
-                    ctx.fill(new Path2D(`M 0 1 v -1 A 1 1 0 0 1 1 1`));
+                    ctx.fill(new Path2D('M 0 1 v -1 A 1 1 0 0 1 1 1'));
                 } else if (n && e) {
-                    ctx.fill(new Path2D(`M 1 0 v 1 A 1 1 0 0 1 0 0`));
+                    ctx.fill(new Path2D('M 1 0 v 1 A 1 1 0 0 1 0 0'));
                 } else if (n && w) {
-                    ctx.fill(new Path2D(`M 0 0 h 1 A 1 1 0 0 1 0 1`));
+                    ctx.fill(new Path2D('M 0 0 h 1 A 1 1 0 0 1 0 1'));
                 }
             } else {
                 ctx.fillStyle = this.toHex(CELL_COLOR.green[cell.level]);
@@ -120,7 +121,7 @@ export class MapRendererComponent implements OnInit {
             let c3 = n.terrain == 'SEA';
             return c1 || c2 || c3;
         };
-        this.drawFeature(x, y, ctx, CELL_COLOR.water, isConnected);
+        this.drawFeature(x, y, ctx, CELL_COLOR.water, cell, isConnected);
     }
 
     private drawPath(x: number, y: number, ctx: CanvasRenderingContext2D, cell: CellData) {
@@ -128,39 +129,51 @@ export class MapRendererComponent implements OnInit {
             // 道と繋がってるかどうか
             return n.terrain == 'LAND' && n.level == cell.level && n.feature == 'PATH';
         };
-        this.drawFeature(x, y, ctx, CELL_COLOR.path, isConnected);
+        this.drawFeature(x, y, ctx, CELL_COLOR.path, cell, isConnected);
     }
 
-    private drawFeature(x: number, y: number, ctx: CanvasRenderingContext2D, color: number, isConnected: (c: CellData) => boolean) {
+    private drawFeature(x: number, y: number, ctx: CanvasRenderingContext2D, color: number, cell: CellData, isConnected: (c: CellData) => boolean) {
         const s1 = CELL_PADDING / CELL_SIZE, s2 = 1 - s1 * 2, s3 = s1 + s2;
         let n8 = this.map.getNeighbours8(x, y);
 
         ctx.fillStyle = this.toHex(color);
-        ctx.fillRect(s1, s1, s2, s2);
+        if (cell.rounded) {
+            if (isConnected(n8.s) && isConnected(n8.e)) {
+                ctx.fill(new Path2D(`M 1 ${s1} v ${s3} h ${-s3} Z`));
+            } else if (isConnected(n8.s) && isConnected(n8.w)) {
+                ctx.fill(new Path2D(`M ${s3} 1 h ${-s3} v ${-s3} Z`));
+            } else if (isConnected(n8.n) && isConnected(n8.e)) {
+                ctx.fill(new Path2D(`M ${s1} 0 h ${s3} v ${s3} Z`));
+            } else if (isConnected(n8.n) && isConnected(n8.w)) {
+                ctx.fill(new Path2D(`M 0 ${s3} v ${-s3} h ${s3} Z`));
+            }
+        } else {
+            ctx.fillRect(s1, s1, s2, s2);
 
-        if (isConnected(n8.n)) {
-            ctx.fillRect(s1, 0, s2, s1);
-        }
-        if (isConnected(n8.w)) {
-            ctx.fillRect(0, s1, s1, s2);
-        }
-        if (isConnected(n8.e)) {
-            ctx.fillRect(s3, s1, s1, s2);
-        }
-        if (isConnected(n8.s)) {
-            ctx.fillRect(s1, s3, s2, s1);
-        }
-        if (isConnected(n8.nw) && isConnected(n8.n) && isConnected(n8.w)) {
-            ctx.fillRect(0, 0, s1, s1);
-        }
-        if (isConnected(n8.ne) && isConnected(n8.n) && isConnected(n8.e)) {
-            ctx.fillRect(s3, 0, s1, s1);
-        }
-        if (isConnected(n8.sw) && isConnected(n8.s) && isConnected(n8.w)) {
-            ctx.fillRect(0, s3, s1, s1);
-        }
-        if (isConnected(n8.se) && isConnected(n8.s) && isConnected(n8.e)) {
-            ctx.fillRect(s3, s3, s1, s1);
+            if (isConnected(n8.n)) {
+                ctx.fillRect(s1, 0, s2, s1);
+            }
+            if (isConnected(n8.w)) {
+                ctx.fillRect(0, s1, s1, s2);
+            }
+            if (isConnected(n8.e)) {
+                ctx.fillRect(s3, s1, s1, s2);
+            }
+            if (isConnected(n8.s)) {
+                ctx.fillRect(s1, s3, s2, s1);
+            }
+            if (isConnected(n8.nw) && isConnected(n8.n) && isConnected(n8.w)) {
+                ctx.fillRect(0, 0, s1, s1);
+            }
+            if (isConnected(n8.ne) && isConnected(n8.n) && isConnected(n8.e)) {
+                ctx.fillRect(s3, 0, s1, s1);
+            }
+            if (isConnected(n8.sw) && isConnected(n8.s) && isConnected(n8.w)) {
+                ctx.fillRect(0, s3, s1, s1);
+            }
+            if (isConnected(n8.se) && isConnected(n8.s) && isConnected(n8.e)) {
+                ctx.fillRect(s3, s3, s1, s1);
+            }
         }
     }
 
