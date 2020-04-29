@@ -80,8 +80,6 @@ export class MapRendererComponent implements OnInit {
             ctx.fillStyle = this.toHex(CELL_COLOR.rock);
             ctx.fillRect(0, 0, 1, 1);
         } else if (cell.terrain == 'LAND') {
-            ctx.fillStyle = this.toHex(CELL_COLOR.green[cell.level]);
-            ctx.fillRect(0, 0, 1, 1);
             if (cell.rounded) {
                 let n4 = this.map.getNeighbours4(x, y);
                 let n = n4.n.level == cell.level;
@@ -89,15 +87,20 @@ export class MapRendererComponent implements OnInit {
                 let e = n4.e.level == cell.level;
                 let s = n4.s.level == cell.level;
                 ctx.fillStyle = this.toHex(CELL_COLOR.green[cell.level - 1]);
+                ctx.fillRect(0, 0, 1, 1);
+                ctx.fillStyle = this.toHex(CELL_COLOR.green[cell.level]);
                 if (s && e) {
-                    ctx.fill(new Path2D(`M 1 0 h -1 v 1 Z`));
+                    ctx.fill(new Path2D(`M 1 1 h -1 A 1 1 0 0 1 1 0`));
                 } else if (s && w) {
-                    ctx.fill(new Path2D(`M 0 0 h 1 v 1 Z`));
+                    ctx.fill(new Path2D(`M 0 1 v -1 A 1 1 0 0 1 1 1`));
                 } else if (n && e) {
-                    ctx.fill(new Path2D(`M 0 0 v 1 h 1 Z`));
+                    ctx.fill(new Path2D(`M 1 0 v 1 A 1 1 0 0 1 0 0`));
                 } else if (n && w) {
-                    ctx.fill(new Path2D(`M 1 0 v 1 h -1 Z`));
+                    ctx.fill(new Path2D(`M 0 0 h 1 A 1 1 0 0 1 0 1`));
                 }
+            } else {
+                ctx.fillStyle = this.toHex(CELL_COLOR.green[cell.level]);
+                ctx.fillRect(0, 0, 1, 1);
             }
             if (cell.feature == 'RIVER') {
                 this.drawRiver(x, y, ctx, cell);
