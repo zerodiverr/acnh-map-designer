@@ -1,8 +1,7 @@
 
 import { Component, OnInit } from '@angular/core';
 import { ViewChild, ElementRef, HostListener, EventEmitter, Output } from '@angular/core';
-import { CellData, MAP_WIDTH, MAP_HEIGHT, CELL_COLOR } from '../model/game';
-import { MapRect } from '../model/editor';
+import { CellData, MAP_SIZE, CELL_COLOR, MapRect } from '../model/map';
 import { GlobalMapService } from '../global-map.service';
 
 const CELL_SIZE = 8;
@@ -20,8 +19,8 @@ export interface CellClickEvent {
     styleUrls: ['./global-renderer.component.less']
 })
 export class GlobalRendererComponent implements OnInit {
-    readonly CANVAS_WIDTH = MAP_WIDTH * CELL_SIZE;
-    readonly CANVAS_HEIGHT = MAP_HEIGHT * CELL_SIZE;
+    readonly CANVAS_WIDTH = MAP_SIZE.width * CELL_SIZE;
+    readonly CANVAS_HEIGHT = MAP_SIZE.height * CELL_SIZE;
     @ViewChild('mapCanvas') mapCanvas: ElementRef<HTMLCanvasElement>;
     @ViewChild('gridCanvas') gridCanvas: ElementRef<HTMLCanvasElement>;
     @Output() cellClick = new EventEmitter<CellClickEvent>();
@@ -45,7 +44,7 @@ export class GlobalRendererComponent implements OnInit {
             ctx.strokeStyle = 'rgba(255,255,255,0.5)';
             this.drawGrid(16, ctx);
 
-            this.updateView({x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT});
+            this.updateView({x: 0, y: 0, width: MAP_SIZE.width, height: MAP_SIZE.height});
         });
     }
 
@@ -161,11 +160,11 @@ export class GlobalRendererComponent implements OnInit {
     private drawGrid(step: number, ctx: CanvasRenderingContext2D) {
         ctx.lineWidth = 1;
         ctx.beginPath();
-        for (let y=0; y<MAP_HEIGHT; y+=step) {
+        for (let y=0; y<MAP_SIZE.height; y+=step) {
             ctx.moveTo(0, y * CELL_SIZE - 0.5);
             ctx.lineTo(this.CANVAS_WIDTH, y * CELL_SIZE - 0.5);
         }
-        for (let x=0; x<MAP_WIDTH; x+=step) {
+        for (let x=0; x<MAP_SIZE.width; x+=step) {
             ctx.moveTo(x * CELL_SIZE - 0.5, 0);
             ctx.lineTo(x * CELL_SIZE - 0.5, this.CANVAS_HEIGHT);
         }
@@ -176,7 +175,7 @@ export class GlobalRendererComponent implements OnInit {
     onMouseDown(event: MouseEvent) {
         let x = Math.floor(event.offsetX / CELL_SIZE);
         let y = Math.floor(event.offsetY / CELL_SIZE);
-        if (x < MAP_WIDTH && y < MAP_HEIGHT) {
+        if (x < MAP_SIZE.width && y < MAP_SIZE.height) {
             this.prevX = x;
             this.prevY = y;
             this.cellClick.emit({x: x, y: y, continuous: false});
@@ -189,7 +188,7 @@ export class GlobalRendererComponent implements OnInit {
         if (event.buttons & 1) {
             let x = Math.floor(event.offsetX / CELL_SIZE);
             let y = Math.floor(event.offsetY / CELL_SIZE);
-            if (x < MAP_WIDTH && y < MAP_HEIGHT) {
+            if (x < MAP_SIZE.width && y < MAP_SIZE.height) {
                 if (this.prevX != x || this.prevY != y) {
                     this.prevX = x;
                     this.prevY = y;

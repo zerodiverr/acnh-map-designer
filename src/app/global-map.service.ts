@@ -1,8 +1,7 @@
 
 import { Subject } from 'rxjs';
 import { Injectable } from '@angular/core';
-import { CellData, MAP_WIDTH, MAP_HEIGHT } from './model/game';
-import { MapRect } from './model/editor';
+import { MAP_SIZE, CellData, MapRect } from './model/map';
 
 const MAP_DATA_VERSION = 3;
 
@@ -47,10 +46,10 @@ export class GlobalMapService {
 
     reset(): void {
         this.mapData = {cells: [], version: MAP_DATA_VERSION};
-        for (let y=0; y<MAP_HEIGHT; y++) {
+        for (let y=0; y<MAP_SIZE.height; y++) {
             this.mapData.cells.push([]);
-            for (let x=0; x<MAP_WIDTH; x++) {
-                let sea = x < 13 || y < 13 || x >= MAP_WIDTH - 13 || y >= MAP_HEIGHT - 13;
+            for (let x=0; x<MAP_SIZE.width; x++) {
+                let sea = x < 13 || y < 13 || x >= MAP_SIZE.width - 13 || y >= MAP_SIZE.height - 13;
                 this.mapData.cells[y].push({
                     terrain: sea ? 'SEA' : 'LAND',
                     level: 0,
@@ -59,7 +58,7 @@ export class GlobalMapService {
                 });
             }
         }
-        this.invalidate({x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT});
+        this.invalidate({x: 0, y: 0, width: MAP_SIZE.width, height: MAP_SIZE.height});
     }
 
     /**

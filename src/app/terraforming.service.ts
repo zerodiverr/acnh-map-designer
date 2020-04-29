@@ -1,6 +1,6 @@
 
 import { Injectable } from '@angular/core';
-import { MAX_LEVEL, CellData } from './model/game';
+import { MAX_LEVEL, CellData } from './model/map';
 import { GlobalMapService } from './global-map.service';
 
 

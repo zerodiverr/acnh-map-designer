@@ -1,8 +1,10 @@
 
 // https://www.eurogamer.net/articles/2020-04-07-animal-crossing-terraforming-create-paths-rivers-cliffs-island-designer-app-new-horizons-7018
 
-export const MAP_WIDTH = 16 * 7;
-export const MAP_HEIGHT = 16 * 6;
+export const MAP_SIZE = {
+    width: 16 * 7,
+    height: 16 * 6,
+};
 
 export const MAX_LEVEL = 3;
 
@@ -30,4 +32,11 @@ export interface CellData {
     level: Level; // 海抜
     feature: Feature; // 川（滝）・道の有無
     corner: Corner; // 川・崖・道の角
+}
+
+export interface MapRect {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
 }

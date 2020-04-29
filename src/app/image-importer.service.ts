@@ -1,6 +1,6 @@
 
 import { Injectable } from '@angular/core';
-import { MAP_WIDTH, MAP_HEIGHT, CELL_COLOR } from './model/game';
+import { MAP_SIZE, CELL_COLOR } from './model/map';
 import { GlobalMapService } from './global-map.service';
 
 const IMAGE_MAP_RECT = {x: 355, y: 118, width: 598, height: 512};
@@ -25,10 +25,10 @@ export class ImageImporterService {
 
         this.globalMap.reset();
 
-        for (let y=0; y<MAP_HEIGHT; y++) {
-            for (let x=0; x<MAP_WIDTH; x++) {
-                let ix = Math.floor(IMAGE_MAP_RECT.x + (x + 0.5) * IMAGE_MAP_RECT.width / MAP_WIDTH);
-                let iy = Math.floor(IMAGE_MAP_RECT.y + (y + 0.5) * IMAGE_MAP_RECT.height / MAP_HEIGHT);
+        for (let y=0; y<MAP_SIZE.height; y++) {
+            for (let x=0; x<MAP_SIZE.width; x++) {
+                let ix = Math.floor(IMAGE_MAP_RECT.x + (x + 0.5) * IMAGE_MAP_RECT.width / MAP_SIZE.width);
+                let iy = Math.floor(IMAGE_MAP_RECT.y + (y + 0.5) * IMAGE_MAP_RECT.height / MAP_SIZE.height);
                 let i = (iy * image.width + ix) * 4;
                 let r = pd.data[i + 0], g = pd.data[i + 1], b = pd.data[i + 2];
 
@@ -81,7 +81,7 @@ export class ImageImporterService {
                 }
             }
         }
-        this.globalMap.invalidate({x: 0, y: 0, width: MAP_WIDTH, height: MAP_HEIGHT});
+        this.globalMap.invalidate({x: 0, y: 0, width: MAP_SIZE.width, height: MAP_SIZE.height});
     }
 
     private getNearestColor(r: number, g: number, b: number, colors: number[]): number {
@@ -98,6 +98,6 @@ export class ImageImporterService {
     }
 
     private isMapEdge(x: number, y: number, dist: number) : boolean {
-        return x < dist || y < dist || x >= MAP_WIDTH - dist || y >= MAP_HEIGHT - dist;
+        return x < dist || y < dist || x >= MAP_SIZE.width - dist || y >= MAP_SIZE.height - dist;
     }
 }
