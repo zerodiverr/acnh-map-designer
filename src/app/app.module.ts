@@ -5,7 +5,6 @@ import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { ComposerComponent } from './composer/composer.component';
 import { GlobalRendererComponent } from './global-renderer/global-renderer.component';
-import { ComponentEditorComponent } from './component-editor/component-editor.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -19,7 +18,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
         AppComponent,
         ComposerComponent,
         GlobalRendererComponent,
-        ComponentEditorComponent
     ],
     imports: [
         BrowserModule,
