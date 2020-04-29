@@ -6,14 +6,18 @@ export const MAP_HEIGHT = 16 * 6;
 
 export const MAX_LEVEL = 3;
 
-export const WATER_COLOR = 0x79d7bf;
-export const SAND_COLOR = 0xeee6a3;
-export const ROCK_COLOR = 0x757686;
-export const PATH_COLOR = 0xb7a76d;
-export const GREEN0_COLOR = 0x427d41;
-export const GREEN1_COLOR = 0x43a040;
-export const GREEN2_COLOR = 0x6acc4f;
-export const GREEN3_COLOR = 0x6fda50;
+export const CELL_COLOR = {
+    water: 0x79d7bf,
+    sand: 0xeee6a3,
+    rock: 0x757686,
+    path: 0xb7a76d,
+    green: [
+        0x427d41,
+        0x43a040,
+        0x6acc4f,
+        0x6fda50,
+    ]
+};
 
 export type Terrain = 'SEA' | 'ROCK' | 'SAND' | 'LAND';
 export type Level = 0 | 1 | 2 | 3;

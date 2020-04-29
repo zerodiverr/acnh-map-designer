@@ -1,9 +1,6 @@
 
 import { Injectable } from '@angular/core';
-import {
-    MAP_WIDTH, MAP_HEIGHT,
-    WATER_COLOR, SAND_COLOR, ROCK_COLOR, PATH_COLOR, GREEN0_COLOR, GREEN1_COLOR, GREEN2_COLOR, GREEN3_COLOR,
-} from './model/game';
+import { MAP_WIDTH, MAP_HEIGHT, CELL_COLOR } from './model/game';
 import { GlobalMapService } from './global-map.service';
 
 const IMAGE_MAP_RECT = {x: 355, y: 118, width: 598, height: 512};
@@ -40,7 +37,7 @@ export class ImageImporterService {
                 cell.feature = null;
                 cell.corner = null;
 
-                let colors = [ROCK_COLOR, SAND_COLOR, WATER_COLOR, PATH_COLOR, GREEN0_COLOR, GREEN1_COLOR, GREEN2_COLOR, GREEN3_COLOR];
+                let colors = [CELL_COLOR.rock, CELL_COLOR.sand, CELL_COLOR.water, CELL_COLOR.path].concat(CELL_COLOR.green);
                 if (this.isMapEdge(x, y, 1)) {
                     colors = colors.slice(0, 3);
                 } else if (!this.isMapEdge(x, y, 13)) {
@@ -48,7 +45,7 @@ export class ImageImporterService {
                 }
 
                 switch (this.getNearestColor(r, g, b, colors)) {
-                    case WATER_COLOR:
+                    case CELL_COLOR.water:
                         if (this.isMapEdge(x, y, 13)) {
                             cell.terrain = 'SEA';
                         } else {
@@ -56,28 +53,28 @@ export class ImageImporterService {
                             cell.feature = 'RIVER';
                         }
                         break;
-                    case SAND_COLOR:
+                    case CELL_COLOR.sand:
                         cell.terrain = 'SAND';
                         break;
-                    case ROCK_COLOR:
+                    case CELL_COLOR.rock:
                         cell.terrain = 'ROCK';
                         break;
-                    case PATH_COLOR:
+                    case CELL_COLOR.path:
                         cell.terrain = 'LAND';
                         cell.feature = 'PATH';
                         break;
-                    case GREEN0_COLOR:
+                    case CELL_COLOR.green[0]:
                         cell.terrain = 'LAND';
                         break;
-                    case GREEN1_COLOR:
+                    case CELL_COLOR.green[1]:
                         cell.terrain = 'LAND';
                         cell.level = 1;
                         break;
-                    case GREEN2_COLOR:
+                    case CELL_COLOR.green[2]:
                         cell.terrain = 'LAND';
                         cell.level = 2;
                         break;
-                    case GREEN3_COLOR:
+                    case CELL_COLOR.green[3]:
                         cell.terrain = 'LAND';
                         cell.level = 3;
                         break;

@@ -1,10 +1,7 @@
 
 import { Component, OnInit } from '@angular/core';
 import { ViewChild, ElementRef, HostListener, EventEmitter, Output } from '@angular/core';
-import {
-    CellData, MAP_WIDTH, MAP_HEIGHT,
-    WATER_COLOR, SAND_COLOR, ROCK_COLOR, PATH_COLOR, GREEN0_COLOR, GREEN1_COLOR, GREEN2_COLOR, GREEN3_COLOR,
-} from '../model/game';
+import { CellData, MAP_WIDTH, MAP_HEIGHT, CELL_COLOR } from '../model/game';
 import { MapRect } from '../model/editor';
 import { GlobalMapService } from '../global-map.service';
 
@@ -75,19 +72,19 @@ export class GlobalRendererComponent implements OnInit {
     private drawCell(x: number, y: number, ctx: CanvasRenderingContext2D) {
         let cell = this.globalMap.getCell(x, y);
         if (cell.terrain == 'SEA') {
-            ctx.fillStyle = this.toHex(WATER_COLOR);
+            ctx.fillStyle = this.toHex(CELL_COLOR.water);
             ctx.fillRect(0, 0, 1, 1);
         } else if (cell.terrain == 'SAND') {
-            ctx.fillStyle = this.toHex(SAND_COLOR);
+            ctx.fillStyle = this.toHex(CELL_COLOR.sand);
             ctx.fillRect(0, 0, 1, 1);
         } else if (cell.terrain == 'ROCK') {
-            ctx.fillStyle = this.toHex(ROCK_COLOR);
+            ctx.fillStyle = this.toHex(CELL_COLOR.rock);
             ctx.fillRect(0, 0, 1, 1);
         } else if (cell.terrain == 'LAND') {
-            ctx.fillStyle = this.toHex([GREEN0_COLOR, GREEN1_COLOR, GREEN2_COLOR, GREEN3_COLOR][cell.level]);
+            ctx.fillStyle = this.toHex(CELL_COLOR.green[cell.level]);
             ctx.fillRect(0, 0, 1, 1);
             if (cell.corner !== null) {
-                ctx.fillStyle = this.toHex([GREEN0_COLOR, GREEN1_COLOR, GREEN2_COLOR, GREEN3_COLOR][cell.level - 1]);
+                ctx.fillStyle = this.toHex(CELL_COLOR.green[cell.level - 1]);
                 if (cell.corner === 'NW') {
                     ctx.fill(new Path2D(`M 1 0 h -1 v 1 Z`));
                 } else if (cell.corner === 'NE') {
@@ -116,7 +113,7 @@ export class GlobalRendererComponent implements OnInit {
             let c3 = n.terrain == 'SEA';
             return c1 || c2 || c3;
         };
-        this.drawFeature(x, y, ctx, WATER_COLOR, isConnected);
+        this.drawFeature(x, y, ctx, CELL_COLOR.water, isConnected);
     }
 
     private drawPath(x: number, y: number, ctx: CanvasRenderingContext2D, _: CellData) {
@@ -125,7 +122,7 @@ export class GlobalRendererComponent implements OnInit {
             let c1 = n.terrain == 'LAND' && n.feature == 'PATH';
             return c1;
         };
-        this.drawFeature(x, y, ctx, PATH_COLOR, isConnected);
+        this.drawFeature(x, y, ctx, CELL_COLOR.path, isConnected);
     }
 
     private drawFeature(x: number, y: number, ctx: CanvasRenderingContext2D, color: number, isConnected: (c: CellData) => boolean) {
