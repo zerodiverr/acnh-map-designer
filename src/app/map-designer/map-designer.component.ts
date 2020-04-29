@@ -7,11 +7,11 @@ import { ImageImporterService } from '../image-importer.service';
 import { CellClickEvent } from '../map-renderer/map-renderer.component';
 
 @Component({
-    selector: 'amd-composer',
-    templateUrl: './composer.component.html',
-    styleUrls: ['./composer.component.less']
+    selector: 'amd-map-designer',
+    templateUrl: './map-designer.component.html',
+    styleUrls: ['./map-designer.component.less']
 })
-export class ComposerComponent implements OnInit {
+export class MapDesignerComponent implements OnInit {
     toolValue = 'cliff';
     @ViewChild('tool') tool: MatButtonToggleGroup;
 

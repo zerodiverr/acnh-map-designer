@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
-import { ComposerComponent } from './composer/composer.component';
+import { MapDesignerComponent } from './map-designer/map-designer.component';
 import { MapRendererComponent } from './map-renderer/map-renderer.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -16,7 +16,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 @NgModule({
     declarations: [
         AppComponent,
-        ComposerComponent,
+        MapDesignerComponent,
         MapRendererComponent,
     ],
     imports: [
