@@ -2,7 +2,7 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { MatButtonToggleGroup, MatButtonToggleChange } from '@angular/material/button-toggle';
 import { GlobalMapService } from '../global-map.service';
-import { TerraformingService } from '../terraforming.service';
+import { TerraformingService, TerraformingTool } from '../terraforming.service';
 import { ImageImporterService } from '../image-importer.service';
 import { CellClickEvent } from '../global-renderer/global-renderer.component';
 
@@ -15,6 +15,8 @@ export class ComposerComponent implements OnInit {
     toolValue = 'cliff';
     @ViewChild('tool') tool: MatButtonToggleGroup;
     @ViewChild('globalRenderer', {read: ElementRef}) globalRenderer: ElementRef;
+
+    private currentTool: TerraformingTool;
 
     constructor(
         private globalMap: GlobalMapService,
@@ -34,13 +36,18 @@ export class ComposerComponent implements OnInit {
     }
 
     cellClick(event: CellClickEvent) {
-        // event.continuous
-        if (this.tool.value == 'cliff') {
-            this.terraforming.cliff(event.x, event.y);
-        } else if (this.tool.value == 'river') {
-            this.terraforming.river(event.x, event.y);
-        } else if (this.tool.value == 'path') {
-            this.terraforming.path(event.x, event.y);
+        const x = event.x, y = event.y;
+        if (!event.continuous) {
+            if (this.tool.value == 'cliff') {
+                this.currentTool = this.terraforming.CLIFF_TOOLS.find(t => t.available(x, y));
+            } else if (this.tool.value == 'river') {
+                this.currentTool = this.terraforming.RIVER_TOOLS.find(t => t.available(x, y));
+            } else if (this.tool.value == 'path') {
+                this.currentTool = this.terraforming.PATH_TOOLS.find(t => t.available(x, y));
+            }
+        }
+        if (this.currentTool.available(x, y)) {
+            this.currentTool.apply(x, y, event.continuous);
         }
     }
 

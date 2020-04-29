@@ -3,12 +3,41 @@ import { Injectable } from '@angular/core';
 import { MAX_LEVEL, CellData } from './model/game';
 import { GlobalMapService } from './global-map.service';
 
-export type Operation = 'CLIFF_BUILD' | 'CLIFF_COLLAPSE' | 'DIG_RIVER' | 'RECLAIM_RIVER';
+
+/**
+ * 工事ツール
+ */
+export interface TerraformingTool {
+    available(x: number, y: number): boolean;
+    apply(x: number, y: number, continuous: boolean): void;
+}
+
 
 @Injectable({
     providedIn: 'root'
 })
 export class TerraformingService {
+    readonly CLIFF_TOOLS: TerraformingTool[] = [
+        new CliffBuilder(this.globalMap, 3),
+        new CliffBuilder(this.globalMap, 2),
+        new CliffBuilder(this.globalMap, 1),
+        new CliffCollapser(this.globalMap, 2),
+        new CliffCollapser(this.globalMap, 1),
+        new CliffCollapser(this.globalMap, 0),
+        new NopTool(),
+    ];
+
+    readonly RIVER_TOOLS: TerraformingTool[] = [
+        new RiverDigger(this.globalMap),
+        new RiverReclaimer(this.globalMap),
+        new NopTool(),
+    ];
+
+    readonly PATH_TOOLS: TerraformingTool[] = [
+        new PathPaver(this.globalMap),
+        new PathPeeler(this.globalMap),
+        new NopTool(),
+    ];
 
     constructor(
         private globalMap: GlobalMapService,
@@ -16,91 +45,95 @@ export class TerraformingService {
 
     // public road() {}
 
-    public cliff(x: number, y: number) {
-        if (false && this.canCornerCliff(x, y)) {
-            this.cornerCliff(x, y);
-        } else if (this.canBuildCliff(x, y)) {
-            this.buildCliff(x, y);
-        } else if (this.canCollapseCliff(x, y)) {
-            this.collapseCliff(x, y);
-        }
-    }
-
-    public river(x: number, y: number) {
-        if (this.canDigRiver(x, y)) {
-            this.digRiver(x, y);
-        } else if (this.canReclaimRiver(x, y)) {
-            this.reclaimRiver(x, y);
-        }
-    }
-
-    public path(x: number, y: number) {
-        if (this.canPavePath(x, y)) {
-            this.pavePath(x, y);
-        } else if (this.canPeelPath(x, y)) {
-            this.peelPath(x, y);
-        }
-    }
-
     /**
      * 指定した座標に崖の角を作れるか
      */
-    private canCornerCliff(x: number, y: number): boolean {
-        if (!this.canCollapseCliff(x, y)) {
-            return false;
-        }
-
-        // 4隣接の隣り合う二つが同じ高さ、残りが崖下なら
-        let cell = this.globalMap.getCell(x, y);
-        if (cell.corner !== null) {
-            return false;
-        }
-
-        let n4 = this.globalMap.getNeighbours4(x, y);
-        return Object.values(n4).filter((c: CellData) => {
-            return c.level == cell.level;
-        }).length == 2 && Object.values(n4).filter((c: CellData) => {
-            return c.level == cell.level - 1;
-        }).length == 2 && n4.n.level != n4.s.level;
-    }
+    // private canCornerCliff(x: number, y: number): boolean {
+    //     if (!this.canCollapseCliff(x, y)) {
+    //         return false;
+    //     }
+    //
+    //     // 4隣接の隣り合う二つが同じ高さ、残りが崖下なら
+    //     let cell = this.globalMap.getCell(x, y);
+    //     if (cell.corner !== null) {
+    //         return false;
+    //     }
+    //
+    //     let n4 = this.globalMap.getNeighbours4(x, y);
+    //     return Object.values(n4).filter((c: CellData) => {
+    //         return c.level == cell.level;
+    //     }).length == 2 && Object.values(n4).filter((c: CellData) => {
+    //         return c.level == cell.level - 1;
+    //     }).length == 2 && n4.n.level != n4.s.level;
+    // }
 
     /**
      * 崖の角を実行
      */
-    private cornerCliff(x: number, y: number): void {
-        // TODO 周囲の処理
-        let cell = this.globalMap.getCell(x, y);
-        let n4 = this.globalMap.getNeighbours4(x, y);
-        if (n4.n.level < cell.level && n4.w.level < cell.level) {
-            cell.corner = 'NW';
-        } else if (n4.n.level < cell.level && n4.e.level < cell.level) {
-            cell.corner = 'NE';
-        } else if (n4.s.level < cell.level && n4.w.level < cell.level) {
-            cell.corner = 'SW';
-        } else if (n4.s.level < cell.level && n4.e.level < cell.level) {
-            cell.corner = 'SE';
-        }
-        this.globalMap.invalidate({x: x, y: y, width: 1, height: 1});
+    // private cornerCliff(x: number, y: number): void {
+    //     // TODO 周囲の処理
+    //     let cell = this.globalMap.getCell(x, y);
+    //     let n4 = this.globalMap.getNeighbours4(x, y);
+    //     if (n4.n.level < cell.level && n4.w.level < cell.level) {
+    //         cell.corner = 'NW';
+    //     } else if (n4.n.level < cell.level && n4.e.level < cell.level) {
+    //         cell.corner = 'NE';
+    //     } else if (n4.s.level < cell.level && n4.w.level < cell.level) {
+    //         cell.corner = 'SW';
+    //     } else if (n4.s.level < cell.level && n4.e.level < cell.level) {
+    //         cell.corner = 'SE';
+    //     }
+    //     this.globalMap.invalidate({x: x, y: y, width: 1, height: 1});
+    // }
+}
+
+
+/**
+ * なにもしないツール
+ */
+class NopTool implements TerraformingTool {
+    public available(): boolean {
+        return true;
     }
 
-    /**
-     * 指定した座標に盛り土ができるか
-     */
-    private canBuildCliff(x: number, y: number): boolean {
-        let cell = this.globalMap.getCell(x, y);
+    public apply(): void {
+    }
+}
+
+class MapToolBase {
+    protected map: GlobalMapService;
+
+    constructor(map: GlobalMapService) {
+        this.map = map;
+    }
+}
+
+/**
+ * 指定したレベルに崖を盛り上げる
+ */
+class CliffBuilder extends MapToolBase implements TerraformingTool {
+    private level: number;
+
+    constructor(map: GlobalMapService, level: number) {
+        super(map);
+        this.level = level;
+    }
+
+    public available(x: number, y: number): boolean {
+        let cell = this.map.getCell(x, y);
         let conds = [
             cell.terrain == 'LAND',
-            cell.level < MAX_LEVEL,
+            cell.level == this.level - 1,
             cell.feature != 'RIVER',
             cell.corner == null,
         ];
-        if (conds.some(c => !c)) {
+        if (!conds.every(c => c)) {
             return false;
         }
 
         // 8隣接に崖下が無い、かつ4隣接に崖上の滝がない場合に盛り土可能
-        let n8 = this.globalMap.getNeighbours8(x, y);
-        let n4 = this.globalMap.getNeighbours4(x, y);
+        let n8 = this.map.getNeighbours8(x, y);
+        let n4 = this.map.getNeighbours4(x, y);
         return Object.values(n8).every((c: CellData) => {
             return c.level >= cell.level;
         }) && Object.values(n4).every((c: CellData) => {
@@ -108,34 +141,40 @@ export class TerraformingService {
         });
     }
 
-    /**
-     * 盛り土の実行
-     */
-    private buildCliff(x: number, y: number): void {
+    public apply(x: number, y: number, _: boolean): void {
         // TODO 周囲の処理
-        let cell = this.globalMap.getCell(x, y);
+        let cell = this.map.getCell(x, y);
         cell.level++;
         cell.feature = null;
-        this.globalMap.invalidate({x: x, y: y, width: 1, height: 1});
+        this.map.invalidate({x: x, y: y, width: 1, height: 1});
+    }
+}
+
+/**
+ * 指定したレベルに崖を盛り下げる
+ */
+class CliffCollapser extends MapToolBase implements TerraformingTool {
+    private level: number;
+
+    constructor(map: GlobalMapService, level: number) {
+        super(map);
+        this.level = level;
     }
 
-    /**
-     * 指定した座標を掘り下げられるか
-     */
-    private canCollapseCliff(x: number, y: number): boolean {
-        let cell = this.globalMap.getCell(x, y);
+    public available(x: number, y: number): boolean {
+        let cell = this.map.getCell(x, y);
         let conds = [
             cell.terrain == 'LAND',
-            cell.level > 0,
-            cell.feature != 'RIVER'
+            cell.level == this.level + 1,
+            cell.feature != 'RIVER',
         ];
-        if (conds.some(c => !c)) {
+        if (!conds.every(c => c)) {
             return false;
         }
 
         // 8隣接に崖上が無い、かつ4隣接に同じ高さの川がない場合に掘り下げ可能
-        let n8 = this.globalMap.getNeighbours8(x, y);
-        let n4 = this.globalMap.getNeighbours4(x, y);
+        let n8 = this.map.getNeighbours8(x, y);
+        let n4 = this.map.getNeighbours4(x, y);
         return Object.values(n8).every((c: CellData) => {
             return c.level <= cell.level;
         }) && Object.values(n4).every((c: CellData) => {
@@ -143,24 +182,22 @@ export class TerraformingService {
         });
     }
 
-    /**
-     * 掘り下げの実行
-     */
-    private collapseCliff(x: number, y: number): void {
+    public apply(x: number, y: number, _: boolean): void {
         // TODO 周囲の処理
-        let cell = this.globalMap.getCell(x, y);
+        let cell = this.map.getCell(x, y);
         cell.level--;
         cell.feature = null;
         cell.corner = null;
-        this.globalMap.invalidate({x: x, y: y, width: 1, height: 1});
+        this.map.invalidate({x: x, y: y, width: 1, height: 1});
     }
+}
 
-
-    /**
-     * 指定した座標に川が掘れるか
-     */
-    private canDigRiver(x: number, y: number): boolean {
-        let cell = this.globalMap.getCell(x, y);
+/**
+ * 川や滝を作る
+ */
+class RiverDigger extends MapToolBase implements TerraformingTool {
+    public available(x: number, y: number): boolean {
+        let cell = this.map.getCell(x, y);
         let conds = [
             cell.terrain == 'LAND',
             cell.level < MAX_LEVEL,
@@ -170,7 +207,7 @@ export class TerraformingService {
             return false;
         }
         // 8隣接に崖下が無い場合は川堀り可能
-        let n8 = this.globalMap.getNeighbours8(x, y);
+        let n8 = this.map.getNeighbours8(x, y);
         let cond = Object.values(n8).filter((c: CellData) => {
             return c.level < cell.level;
         }).length == 0;
@@ -178,7 +215,7 @@ export class TerraformingService {
             return true;
         }
         // 4隣接のうち崖下が1つの場合で、対する5隣接に崖下が無い場合は滝を作れる
-        let n4 = this.globalMap.getNeighbours4(x, y);
+        let n4 = this.map.getNeighbours4(x, y);
         cond = Object.values(n4).filter((c: CellData) => {
             return c.level < cell.level;
         }).length == 1;
@@ -199,22 +236,21 @@ export class TerraformingService {
         return false;
     }
 
-    /**
-     * 川を掘る
-     */
-    private digRiver(x: number, y: number): void {
+    public apply(x: number, y: number, _: boolean): void {
         // TODO 周囲の処理
-        let cell = this.globalMap.getCell(x, y);
+        let cell = this.map.getCell(x, y);
         cell.feature = 'RIVER';
         cell.corner = null;
-        this.globalMap.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
+        this.map.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
     }
+}
 
-    /**
-     * 指定した座標の川を埋められるか
-     */
-    private canReclaimRiver(x: number, y: number): boolean {
-        let cell = this.globalMap.getCell(x, y);
+/**
+ * 川や滝を埋める
+ */
+class RiverReclaimer extends MapToolBase implements TerraformingTool {
+    public available(x: number, y: number): boolean {
+        let cell = this.map.getCell(x, y);
         let conds = [
             cell.terrain == 'LAND',
             cell.feature == 'RIVER',
@@ -222,22 +258,21 @@ export class TerraformingService {
         return conds.every(c => c);
     }
 
-    /**
-     * 川を埋める
-     */
-    private reclaimRiver(x: number, y: number): void {
+    public apply(x: number, y: number, _: boolean): void {
         // TODO 周囲の処理
-        let cell = this.globalMap.getCell(x, y);
+        let cell = this.map.getCell(x, y);
         cell.feature = null;
         cell.corner = null;
-        this.globalMap.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
+        this.map.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
     }
+}
 
-    /**
-     * 指定した座標に道路が舗装できるか
-     */
-    private canPavePath(x: number, y: number): boolean {
-        let cell = this.globalMap.getCell(x, y);
+/**
+ * 道路を舗装する
+ */
+class PathPaver extends MapToolBase implements TerraformingTool {
+    public available(x: number, y: number): boolean {
+        let cell = this.map.getCell(x, y);
         let conds = [
             cell.terrain == 'LAND',
             cell.level < MAX_LEVEL,
@@ -247,20 +282,19 @@ export class TerraformingService {
         return conds.every(c => c);
     }
 
-    /**
-     * 道路の舗装
-     */
-    private pavePath(x: number, y: number): void {
-        let cell = this.globalMap.getCell(x, y);
+    public apply(x: number, y: number, _: boolean): void {
+        let cell = this.map.getCell(x, y);
         cell.feature = 'PATH';
-        this.globalMap.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
+        this.map.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
     }
+}
 
-    /**
-     * 指定した座標の舗装を剥がせるか
-     */
-    private canPeelPath(x: number, y: number): boolean {
-        let cell = this.globalMap.getCell(x, y);
+/**
+ * 道路の舗装を剥がす
+ */
+class PathPeeler extends MapToolBase implements TerraformingTool {
+    public available(x: number, y: number): boolean {
+        let cell = this.map.getCell(x, y);
         let conds = [
             cell.terrain == 'LAND',
             cell.feature == 'PATH'
@@ -268,13 +302,10 @@ export class TerraformingService {
         return conds.every(c => c);
     }
 
-    /**
-     * 舗装を剥がす
-     */
-    private peelPath(x: number, y: number): void {
-        let cell = this.globalMap.getCell(x, y);
+    public apply(x: number, y: number, _: boolean): void {
+        let cell = this.map.getCell(x, y);
         cell.feature = null;
         cell.corner = null;
-        this.globalMap.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
+        this.map.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
     }
 }
