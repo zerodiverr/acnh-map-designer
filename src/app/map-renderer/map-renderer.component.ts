@@ -132,35 +132,35 @@ export class MapRendererComponent implements OnInit {
     }
 
     private drawFeature(x: number, y: number, ctx: CanvasRenderingContext2D, color: number, isConnected: (c: CellData) => boolean) {
-        const cp = CELL_PADDING / CELL_SIZE;
+        const s1 = CELL_PADDING / CELL_SIZE, s2 = 1 - s1 * 2, s3 = s1 + s2;
         let n8 = this.map.getNeighbours8(x, y);
 
         ctx.fillStyle = this.toHex(color);
-        ctx.fillRect(cp, cp, 1 - cp * 2, 1 - cp * 2);
+        ctx.fillRect(s1, s1, s2, s2);
 
         if (isConnected(n8.n)) {
-            ctx.fillRect(cp, 0, 1 - cp * 2, cp);
+            ctx.fillRect(s1, 0, s2, s1);
         }
         if (isConnected(n8.w)) {
-            ctx.fillRect(0, cp, cp, 1 - cp * 2);
+            ctx.fillRect(0, s1, s1, s2);
         }
         if (isConnected(n8.e)) {
-            ctx.fillRect(1 - cp, cp, cp, 1 - cp * 2);
+            ctx.fillRect(s3, s1, s1, s2);
         }
         if (isConnected(n8.s)) {
-            ctx.fillRect(cp, 1 - cp, 1 - cp * 2, cp);
+            ctx.fillRect(s1, s3, s2, s1);
         }
         if (isConnected(n8.nw) && isConnected(n8.n) && isConnected(n8.w)) {
-            ctx.fillRect(0, 0, cp, cp);
+            ctx.fillRect(0, 0, s1, s1);
         }
         if (isConnected(n8.ne) && isConnected(n8.n) && isConnected(n8.e)) {
-            ctx.fillRect(1 - cp, 0, cp, cp);
+            ctx.fillRect(s3, 0, s1, s1);
         }
         if (isConnected(n8.sw) && isConnected(n8.s) && isConnected(n8.w)) {
-            ctx.fillRect(0, 1 - cp, cp, cp);
+            ctx.fillRect(0, s3, s1, s1);
         }
         if (isConnected(n8.se) && isConnected(n8.s) && isConnected(n8.e)) {
-            ctx.fillRect(1 - cp, 1 - cp, cp, cp);
+            ctx.fillRect(s3, s3, s1, s1);
         }
     }
 
