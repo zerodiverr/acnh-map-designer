@@ -34,10 +34,13 @@ export class ComposerComponent implements OnInit {
     }
 
     cellClick(event: CellClickEvent) {
+        // event.continuous
         if (this.tool.value == 'cliff') {
             this.terraforming.cliff(event.x, event.y);
         } else if (this.tool.value == 'river') {
             this.terraforming.river(event.x, event.y);
+        } else if (this.tool.value == 'path') {
+            this.terraforming.path(event.x, event.y);
         }
     }
 

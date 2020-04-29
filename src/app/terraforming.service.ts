@@ -34,6 +34,14 @@ export class TerraformingService {
         }
     }
 
+    public path(x: number, y: number) {
+        if (this.canPavePath(x, y)) {
+            this.pavePath(x, y);
+        } else if (this.canPeelPath(x, y)) {
+            this.peelPath(x, y);
+        }
+    }
+
     /**
      * 指定した座標に崖の角を作れるか
      */
@@ -219,6 +227,51 @@ export class TerraformingService {
      */
     private reclaimRiver(x: number, y: number): void {
         // TODO 周囲の処理
+        let cell = this.globalMap.getCell(x, y);
+        cell.feature = null;
+        cell.corner = null;
+        this.globalMap.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
+    }
+
+    /**
+     * 指定した座標に道路が舗装できるか
+     */
+    private canPavePath(x: number, y: number): boolean {
+        let cell = this.globalMap.getCell(x, y);
+        let conds = [
+            cell.terrain == 'LAND',
+            cell.level < MAX_LEVEL,
+            cell.feature === null,
+            cell.corner == null,
+        ];
+        return conds.every(c => c);
+    }
+
+    /**
+     * 道路の舗装
+     */
+    private pavePath(x: number, y: number): void {
+        let cell = this.globalMap.getCell(x, y);
+        cell.feature = 'PATH';
+        this.globalMap.invalidate({x: x - 1, y: y - 1, width: 3, height: 3});
+    }
+
+    /**
+     * 指定した座標の舗装を剥がせるか
+     */
+    private canPeelPath(x: number, y: number): boolean {
+        let cell = this.globalMap.getCell(x, y);
+        let conds = [
+            cell.terrain == 'LAND',
+            cell.feature == 'PATH'
+        ];
+        return conds.every(c => c);
+    }
+
+    /**
+     * 舗装を剥がす
+     */
+    private peelPath(x: number, y: number): void {
         let cell = this.globalMap.getCell(x, y);
         cell.feature = null;
         cell.corner = null;
