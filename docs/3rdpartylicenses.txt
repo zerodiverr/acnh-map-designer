@@ -89,7 +89,11 @@ THE SOFTWARE.
 
 @angular/material/button-toggle
 
+@angular/material/form-field
+
 @angular/material/icon
+
+@angular/material/sidenav
 
 @angular/material/toolbar
 
