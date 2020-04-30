@@ -4,6 +4,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { MatButtonToggleGroup, MatButtonToggleChange } from '@angular/material/button-toggle';
 import { MatDrawer } from '@angular/material/sidenav';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MapService } from '../map.service';
 import { TerraformingService, TerraformingTool } from '../terraforming.service';
 import { ImageImporterService, ImageBound } from '../image-importer.service';
@@ -34,6 +35,7 @@ export class MapDesignerComponent implements OnInit {
 
     constructor(
         formBuilder: FormBuilder,
+        private snackBar: MatSnackBar,
         public map: MapService,
         private terraforming: TerraformingService,
         private imageImporter: ImageImporterService,
@@ -47,7 +49,7 @@ export class MapDesignerComponent implements OnInit {
                 this.importDrawer.open();
                 this.execImportImage();
             } else {
-                alert('1280*720の画像を選択してください');
+                this.snackBar.open('1280*720の画像を選択してください', 'OK');
             }
         };
     }

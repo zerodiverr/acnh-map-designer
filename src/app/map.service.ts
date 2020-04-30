@@ -3,8 +3,8 @@ import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { MAP_SIZE, CellData, MapRect, Terrain, Level, Feature } from './model/map';
+import { StorageService } from './storage.service';
 
-const MAP_DATA_VERSION = 1;
 
 export interface Neighbours4 {
     n: CellData,
@@ -28,46 +28,26 @@ export class MapService {
     public invalidRect = new Subject<MapRect>();
     public ready = false;
 
-    constructor() {
-        this.openDB();
+    constructor(storage: StorageService) {
         localStorage.removeItem('mapData');
-    }
 
-    private openDB(): void {
         let date = new Date();
-        let req = indexedDB.open('app', MAP_DATA_VERSION);
-        req.onerror = () => {
-            alert('IndexedDBに対応していません');
-        };
-        req.onsuccess = () => {
-            let db = req.result;
-            console.log('db open success');
-            db.transaction('mapData').objectStore('mapData').get('map').onsuccess = event => {
-                let req = event.target as IDBRequest;
-                let mapData = req.result as Uint16Array;
+        storage.ready.subscribe(() => {
+            storage.load<Uint16Array>('map').subscribe(mapData => {
                 if (mapData) {
                     this.mapData = mapData;
                     this.invalidate({x: 0, y: 0, width: MAP_SIZE.width, height: MAP_SIZE.height});
+                    console.log('load ok', new Date().getTime() - date.getTime());
                 } else {
                     this.reset();
                 }
-                console.log('load ok', new Date().getTime() - date.getTime());
                 this.ready = true;
-            };
+            });
             // 保存開始
             this.invalidRect.pipe(debounceTime(500)).subscribe(() => {
-                db.transaction(['mapData'], 'readwrite').objectStore('mapData').put(this.mapData, 'map');
+                storage.save('map', this.mapData);
             });
-        };
-        req.onupgradeneeded = () => {
-            let db = req.result;
-            if (db.objectStoreNames.contains('mapData')) {
-                db.deleteObjectStore('mapData');
-            }
-            db.createObjectStore('mapData').transaction.oncomplete = () => {
-                console.log('createObjectStore OK');
-            };
-        };
+        });
     }
 
     reset(): void {
