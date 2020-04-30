@@ -23,6 +23,7 @@ export class MapRendererComponent implements OnInit {
     readonly CANVAS_HEIGHT = MAP_SIZE.height * CELL_SIZE;
     @ViewChild('mapCanvas') mapCanvas: ElementRef<HTMLCanvasElement>;
     @ViewChild('gridCanvas') gridCanvas: ElementRef<HTMLCanvasElement>;
+    @ViewChild('cursorCanvas') cursorCanvas: ElementRef<HTMLCanvasElement>;
     @Output() cellClick = new EventEmitter<CellClickEvent>();
     private prevX: number;
     private prevY: number;
@@ -37,13 +38,7 @@ export class MapRendererComponent implements OnInit {
 
     ngOnInit() {
         setTimeout(() => {
-            let ctx = this.gridCanvas.nativeElement.getContext('2d');
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-            this.drawGrid(1, ctx);
-
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-            this.drawGrid(16, ctx);
-
+            this.drawGrid();
             this.updateView({x: 0, y: 0, width: MAP_SIZE.width, height: MAP_SIZE.height});
         });
     }
@@ -177,18 +172,26 @@ export class MapRendererComponent implements OnInit {
         }
     }
 
-    private drawGrid(step: number, ctx: CanvasRenderingContext2D) {
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for (let y=0; y<MAP_SIZE.height; y+=step) {
-            ctx.moveTo(0, y * CELL_SIZE - 0.5);
-            ctx.lineTo(this.CANVAS_WIDTH, y * CELL_SIZE - 0.5);
-        }
-        for (let x=0; x<MAP_SIZE.width; x+=step) {
-            ctx.moveTo(x * CELL_SIZE - 0.5, 0);
-            ctx.lineTo(x * CELL_SIZE - 0.5, this.CANVAS_HEIGHT);
-        }
-        ctx.stroke();
+    private drawGrid() {
+        let ctx = this.gridCanvas.nativeElement.getContext('2d');
+
+        let drawSimpleGrid = (step: number, style: string) => {
+            ctx.strokeStyle = style;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (let y=0; y<MAP_SIZE.height; y+=step) {
+                ctx.moveTo(0, y * CELL_SIZE - 0.5);
+                ctx.lineTo(this.CANVAS_WIDTH, y * CELL_SIZE - 0.5);
+            }
+            for (let x=0; x<MAP_SIZE.width; x+=step) {
+                ctx.moveTo(x * CELL_SIZE - 0.5, 0);
+                ctx.lineTo(x * CELL_SIZE - 0.5, this.CANVAS_HEIGHT);
+            }
+            ctx.stroke();
+        };
+
+        drawSimpleGrid(1, 'rgba(255,255,255,0.1)');
+        drawSimpleGrid(16, 'rgba(255,255,255,0.5)');
     }
 
     @HostListener('mousedown', ['$event'])
@@ -205,10 +208,15 @@ export class MapRendererComponent implements OnInit {
 
     @HostListener('mousemove', ['$event'])
     onMouseMove(event: MouseEvent) {
-        if (event.buttons & 1) {
-            let x = Math.floor(event.offsetX / CELL_SIZE);
-            let y = Math.floor(event.offsetY / CELL_SIZE);
-            if (x < MAP_SIZE.width && y < MAP_SIZE.height) {
+        let x = Math.floor(event.offsetX / CELL_SIZE);
+        let y = Math.floor(event.offsetY / CELL_SIZE);
+        let ctx = this.cursorCanvas.nativeElement.getContext('2d');
+        ctx.clearRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
+        if (x < MAP_SIZE.width && y < MAP_SIZE.height) {
+            ctx.lineWidth = 0.5;
+            ctx.strokeStyle = 'red';
+            ctx.strokeRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            if (event.buttons & 1) {
                 if (this.prevX != x || this.prevY != y) {
                     this.prevX = x;
                     this.prevY = y;
