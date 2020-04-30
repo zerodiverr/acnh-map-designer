@@ -3,7 +3,12 @@ import { Injectable } from '@angular/core';
 import { MAP_SIZE, CELL_COLOR } from './model/map';
 import { MapService } from './map.service';
 
-const IMAGE_MAP_RECT = {x: 355, y: 118, width: 598, height: 512};
+export interface ImageBound {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+}
 
 @Injectable({
     providedIn: 'root'
@@ -14,7 +19,11 @@ export class ImageImporterService {
         private map: MapService
     ) { }
 
-    public importImage(image: HTMLImageElement) {
+    public importImage(image: HTMLImageElement, imageBound: ImageBound) {
+        let ibx = imageBound.left;
+        let iby = imageBound.top;
+        let ibw = imageBound.right - imageBound.left;
+        let ibh = imageBound.bottom - imageBound.top;
         let canvas = document.createElement('canvas');
         canvas.width = image.width;
         canvas.height = image.height;
@@ -27,8 +36,8 @@ export class ImageImporterService {
 
         for (let y=0; y<MAP_SIZE.height; y++) {
             for (let x=0; x<MAP_SIZE.width; x++) {
-                let ix = Math.floor(IMAGE_MAP_RECT.x + (x + 0.5) * IMAGE_MAP_RECT.width / MAP_SIZE.width);
-                let iy = Math.floor(IMAGE_MAP_RECT.y + (y + 0.5) * IMAGE_MAP_RECT.height / MAP_SIZE.height);
+                let ix = Math.floor(ibx + (x + 0.5) * ibw / MAP_SIZE.width);
+                let iy = Math.floor(iby + (y + 0.5) * ibh / MAP_SIZE.height);
                 let i = (iy * image.width + ix) * 4;
                 let r = pd.data[i + 0], g = pd.data[i + 1], b = pd.data[i + 2];
 

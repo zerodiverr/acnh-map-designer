@@ -1,5 +1,26 @@
 
 :host {
+    height: 100%;
+}
+
+mat-drawer-container {
+    height: 100%;
+}
+
+mat-drawer {
+    canvas {
+        width: 240px;
+    }
+    form {
+        margin: 10px;
+    }
+}
+
+mat-drawer-content {
+    position: relative;
+    z-index: 1;
+
+    background: #79d7bf;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -7,7 +28,7 @@
 
 mat-toolbar {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
 
     mat-button-toggle {

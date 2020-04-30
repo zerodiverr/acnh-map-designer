@@ -1,27 +1,56 @@
 
-<mat-toolbar color="primary">
-  <mat-toolbar-row>
-    <span>ACNH Map Designer</span>
-    <span style="width: 20px;"></span>
-    <mat-button-toggle-group #tool="matButtonToggleGroup" [value]="toolValue">
-      <mat-button-toggle value="river">
-        <img src="assets/river_t.png" width="36" height="36"/>
-      </mat-button-toggle>
-      <mat-button-toggle value="cliff">
-        <img src="assets/cliff_t.png" width="36" height="36"/>
-      </mat-button-toggle>
-      <mat-button-toggle value="path">
-        <img src="assets/path_t.png" width="36" height="36"/>
-      </mat-button-toggle>
-    </mat-button-toggle-group>
-    <span style="flex-grow: 1;"></span>
-    <button mat-icon-button (click)="importImage()">
-      <mat-icon>upload_file</mat-icon>
-    </button>
-    <button mat-icon-button color="warn" (click)="reset()">
-      <mat-icon>delete_forever</mat-icon>
-    </button>
-  </mat-toolbar-row>
-</mat-toolbar>
-
-<amd-map-renderer *ngIf="map.ready" #mapRenderer (cellClick)="cellClick($event)"></amd-map-renderer>
+<mat-drawer-container [hasBackdrop]="true">
+  <mat-drawer #importDrawer mode="side">
+    <canvas #importPreview width="1280" height="720"></canvas>
+    <form [formGroup]="importGroup">
+      <mat-form-field>
+        <mat-label>左</mat-label>
+        <input matInput type="number" step="1" formControlName="left" [min]="IMAGE_BOUND_DEFAULT.left-10" [max]="IMAGE_BOUND_DEFAULT.left+10"/>
+      </mat-form-field>
+      <br>
+      <mat-form-field>
+        <mat-label>上</mat-label>
+        <input matInput type="number" step="1" formControlName="top" [min]="IMAGE_BOUND_DEFAULT.top-10" [max]="IMAGE_BOUND_DEFAULT.top+10"/>
+      </mat-form-field>
+      <br>
+      <mat-form-field>
+        <mat-label>右</mat-label>
+        <input matInput type="number" step="1" formControlName="right" [min]="IMAGE_BOUND_DEFAULT.right-10" [max]="IMAGE_BOUND_DEFAULT.right+10"/>
+      </mat-form-field>
+      <br>
+      <mat-form-field>
+        <mat-label>下</mat-label>
+        <input matInput type="number" step="1" formControlName="bottom" [min]="IMAGE_BOUND_DEFAULT.bottom-10" [max]="IMAGE_BOUND_DEFAULT.bottom+10"/>
+      </mat-form-field>
+      <br>
+      <button mat-raised-button (click)="importGroup.setValue(IMAGE_BOUND_DEFAULT);importGroup.markAsPristine();" [disabled]="importGroup.pristine">リセット</button>
+    </form>
+  </mat-drawer>
+  <mat-drawer-content>
+    <mat-toolbar color="primary">
+      <mat-toolbar-row>
+        <span>ACNH Map Designer</span>
+        <span style="width: 20px;"></span>
+        <mat-button-toggle-group #tool="matButtonToggleGroup" [value]="toolValue">
+          <mat-button-toggle value="river">
+            <img src="assets/river_t.png" width="36" height="36"/>
+          </mat-button-toggle>
+          <mat-button-toggle value="cliff">
+            <img src="assets/cliff_t.png" width="36" height="36"/>
+          </mat-button-toggle>
+          <mat-button-toggle value="path">
+            <img src="assets/path_t.png" width="36" height="36"/>
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+        <span style="flex-grow: 1;"></span>
+        <button mat-icon-button (click)="beginImportImage()">
+          <mat-icon>upload_file</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="reset()">
+          <mat-icon>delete_forever</mat-icon>
+        </button>
+      </mat-toolbar-row>
+    </mat-toolbar>
+    <amd-map-renderer *ngIf="map.ready" #mapRenderer (cellClick)="cellClick($event)"></amd-map-renderer>
+  </mat-drawer-content>
+</mat-drawer-container>
