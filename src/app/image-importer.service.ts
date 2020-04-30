@@ -46,11 +46,13 @@ export class ImageImporterService {
                 cell.feature = null;
                 cell.rounded = false;
 
-                let colors = [CELL_COLOR.rock, CELL_COLOR.sand, CELL_COLOR.water, CELL_COLOR.path].concat(CELL_COLOR.green);
+                let colors: number[];
                 if (this.isMapEdge(x, y, 1)) {
-                    colors = colors.slice(0, 3);
-                } else if (!this.isMapEdge(x, y, 13)) {
-                    colors = colors.slice(2);
+                    colors = [CELL_COLOR.rock, CELL_COLOR.sand, CELL_COLOR.water];
+                } else if (this.isMapEdge(x, y, 13)) {
+                    colors = [CELL_COLOR.rock, CELL_COLOR.sand, CELL_COLOR.water, CELL_COLOR.path, CELL_COLOR.animals_home, CELL_COLOR.players_home].concat(CELL_COLOR.green).concat(CELL_COLOR.facility);
+                } else {
+                    colors = [CELL_COLOR.water, CELL_COLOR.path, CELL_COLOR.animals_home, CELL_COLOR.players_home].concat(CELL_COLOR.green).concat(CELL_COLOR.facility);
                 }
 
                 switch (this.getNearestColor(r, g, b, colors)) {
@@ -72,6 +74,10 @@ export class ImageImporterService {
                         cell.terrain = 'LAND';
                         cell.feature = 'PATH';
                         break;
+                    case CELL_COLOR.animals_home:
+                    case CELL_COLOR.players_home:
+                    case CELL_COLOR.facility[0]:
+                    case CELL_COLOR.facility[1]:
                     case CELL_COLOR.green[0]:
                         cell.terrain = 'LAND';
                         break;

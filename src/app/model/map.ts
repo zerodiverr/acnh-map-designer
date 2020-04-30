@@ -18,7 +18,10 @@ export const CELL_COLOR = {
         0x43a040,
         0x6acc4f,
         0x6fda50,
-    ]
+    ],
+    facility: [0x544d3d, 0xfdfdfd],
+    animals_home: 0xffb40e,
+    players_home: 0xff80ab,
 };
 
 export type Terrain = 'SEA' | 'ROCK' | 'SAND' | 'LAND';
