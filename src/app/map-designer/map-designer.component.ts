@@ -9,6 +9,7 @@ import { MapService } from '../map.service';
 import { TerraformingService, TerraformingTool } from '../terraforming.service';
 import { ImageImporterService, ImageBound } from '../image-importer.service';
 import { CellClickEvent } from '../map-renderer/map-renderer.component';
+import { MAP_SIZE } from '../model/map';
 
 
 @Component({
@@ -18,10 +19,10 @@ import { CellClickEvent } from '../map-renderer/map-renderer.component';
 })
 export class MapDesignerComponent implements OnInit {
     readonly IMAGE_BOUND_DEFAULT: ImageBound = {
-        left: 355,
-        top: 118,
-        right: 355 + 598,
-        bottom: 118 + 512
+        left: 354.2,
+        top: 117.7,
+        right: 951.7,
+        bottom: 629.7,
     };
 
     importGroup: FormGroup;
@@ -120,6 +121,24 @@ export class MapDesignerComponent implements OnInit {
         ctx.lineTo(ib.right, ib.top);
         ctx.lineTo(ib.left, ib.top);
         ctx.fill();
+
+        ctx.save();
+        ctx.translate(ib.left, ib.top);
+        ctx.scale((ib.right - ib.left) / MAP_SIZE.width, (ib.bottom - ib.top) / MAP_SIZE.height);
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 0.3;
+        ctx.setLineDash([2, 1]);
+        ctx.beginPath();
+        for (let y=0; y<=MAP_SIZE.height; y+=16) {
+            ctx.moveTo(0, y);
+            ctx.lineTo(MAP_SIZE.width, y);
+        }
+        for (let x=0; x<=MAP_SIZE.width; x+=16) {
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, MAP_SIZE.height);
+        }
+        ctx.stroke();
+        ctx.restore();
     }
 
     private execImportImage() {

@@ -10,6 +10,12 @@ export interface ImageBound {
     bottom: number;
 }
 
+type RGB = [number, number, number];
+const EDGE_COLORS = [CELL_COLOR.rock, CELL_COLOR.sand, CELL_COLOR.water];
+const COAST_COLORS = EDGE_COLORS.concat([CELL_COLOR.path, CELL_COLOR.animals_home, CELL_COLOR.players_home]).concat(CELL_COLOR.green).concat(CELL_COLOR.facility);
+const INLAND_COLORS = COAST_COLORS.slice(2);
+
+
 @Injectable({
     providedIn: 'root'
 })
@@ -24,6 +30,11 @@ export class ImageImporterService {
         let iby = imageBound.top;
         let ibw = imageBound.right - imageBound.left;
         let ibh = imageBound.bottom - imageBound.top;
+
+        // TODO
+        // MAP_SIZEの3x3倍くらいのCanvasにスクリーンショットをtransformして描画
+        // getPixelでは整数座標を扱う
+
         let canvas = document.createElement('canvas');
         canvas.width = image.width;
         canvas.height = image.height;
@@ -34,13 +45,15 @@ export class ImageImporterService {
 
         this.map.reset();
 
+        let getPixel = (x: number, y: number): RGB => {
+            let ix = Math.floor(ibx + x * ibw / MAP_SIZE.width);
+            let iy = Math.floor(iby + y * ibh / MAP_SIZE.height);
+            let i = (iy * canvas.width + ix) * 4;
+            return [pd.data[i + 0], pd.data[i + 1], pd.data[i + 2]];
+        };
+
         for (let y=0; y<MAP_SIZE.height; y++) {
             for (let x=0; x<MAP_SIZE.width; x++) {
-                let ix = Math.floor(ibx + (x + 0.5) * ibw / MAP_SIZE.width);
-                let iy = Math.floor(iby + (y + 0.5) * ibh / MAP_SIZE.height);
-                let i = (iy * image.width + ix) * 4;
-                let r = pd.data[i + 0], g = pd.data[i + 1], b = pd.data[i + 2];
-
                 let cell = this.map.getCell(x, y);
                 cell.level = 0;
                 cell.feature = null;
@@ -48,20 +61,28 @@ export class ImageImporterService {
 
                 let colors: number[];
                 if (this.isMapEdge(x, y, 1)) {
-                    colors = [CELL_COLOR.rock, CELL_COLOR.sand, CELL_COLOR.water];
+                    colors = EDGE_COLORS;
                 } else if (this.isMapEdge(x, y, 13)) {
-                    colors = [CELL_COLOR.rock, CELL_COLOR.sand, CELL_COLOR.water, CELL_COLOR.path, CELL_COLOR.animals_home, CELL_COLOR.players_home].concat(CELL_COLOR.green).concat(CELL_COLOR.facility);
+                    colors = COAST_COLORS;
                 } else {
-                    colors = [CELL_COLOR.water, CELL_COLOR.path, CELL_COLOR.animals_home, CELL_COLOR.players_home].concat(CELL_COLOR.green).concat(CELL_COLOR.facility);
+                    colors = INLAND_COLORS;
                 }
 
-                switch (this.getNearestColor(r, g, b, colors)) {
+                let centerColor = this.getNearestColor(getPixel(x + 0.5, y + 0.5), colors);
+                switch (centerColor) {
                     case CELL_COLOR.water:
                         if (this.isMapEdge(x, y, 13)) {
                             cell.terrain = 'SEA';
                         } else {
                             cell.terrain = 'LAND';
                             cell.feature = 'RIVER';
+                            // let crossColors = [
+                            //     this.getNearestColor(getPixel(x + 0.5, y + 0.25), colors),
+                            //     this.getNearestColor(getPixel(x + 0.25, y + 0.5), colors),
+                            //     this.getNearestColor(getPixel(x + 0.75, y + 0.5), colors),
+                            //     this.getNearestColor(getPixel(x + 0.5, y + 0.75), colors),
+                            // ];
+                            // cell.rounded = crossColors.filter(c => c == CELL_COLOR.water).length == 2;
                         }
                         break;
                     case CELL_COLOR.sand:
@@ -100,12 +121,12 @@ export class ImageImporterService {
         this.map.invalidate({x: 0, y: 0, width: MAP_SIZE.width, height: MAP_SIZE.height});
     }
 
-    private getNearestColor(r: number, g: number, b: number, colors: number[]): number {
+    private getNearestColor(rgb: RGB, colors: number[]): number {
         let scores = colors.map(color => {
             let score = 0;
-            score += Math.pow(r - (color >> 16 & 0xFF), 2);
-            score += Math.pow(g - (color >> 8 & 0xFF), 2);
-            score += Math.pow(b - (color & 0xFF), 2);
+            score += Math.pow(rgb[0] - (color >> 16 & 0xFF), 2);
+            score += Math.pow(rgb[1] - (color >> 8 & 0xFF), 2);
+            score += Math.pow(rgb[2] - (color & 0xFF), 2);
             return score;
         });
         let minScore = Math.min.apply(null, scores);

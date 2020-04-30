@@ -5,19 +5,19 @@
     <form [formGroup]="importGroup">
       <mat-form-field>
         <mat-label>上</mat-label>
-        <input matInput type="number" step="1" formControlName="top" [min]="IMAGE_BOUND_DEFAULT.top-10" [max]="IMAGE_BOUND_DEFAULT.top+10"/>
+        <input matInput type="number" step="0.1" formControlName="top" [min]="IMAGE_BOUND_DEFAULT.top-10" [max]="IMAGE_BOUND_DEFAULT.top+10"/>
       </mat-form-field>
       <mat-form-field>
         <mat-label>下</mat-label>
-        <input matInput type="number" step="1" formControlName="bottom" [min]="IMAGE_BOUND_DEFAULT.bottom-10" [max]="IMAGE_BOUND_DEFAULT.bottom+10"/>
+        <input matInput type="number" step="0.1" formControlName="bottom" [min]="IMAGE_BOUND_DEFAULT.bottom-10" [max]="IMAGE_BOUND_DEFAULT.bottom+10"/>
       </mat-form-field>
       <mat-form-field>
         <mat-label>左</mat-label>
-        <input matInput type="number" step="1" formControlName="left" [min]="IMAGE_BOUND_DEFAULT.left-10" [max]="IMAGE_BOUND_DEFAULT.left+10"/>
+        <input matInput type="number" step="0.1" formControlName="left" [min]="IMAGE_BOUND_DEFAULT.left-10" [max]="IMAGE_BOUND_DEFAULT.left+10"/>
       </mat-form-field>
       <mat-form-field>
         <mat-label>右</mat-label>
-        <input matInput type="number" step="1" formControlName="right" [min]="IMAGE_BOUND_DEFAULT.right-10" [max]="IMAGE_BOUND_DEFAULT.right+10"/>
+        <input matInput type="number" step="0.1" formControlName="right" [min]="IMAGE_BOUND_DEFAULT.right-10" [max]="IMAGE_BOUND_DEFAULT.right+10"/>
       </mat-form-field>
       <button mat-raised-button (click)="importGroup.setValue(IMAGE_BOUND_DEFAULT);importGroup.markAsPristine();" [disabled]="importGroup.pristine">リセット</button>
     </form>
