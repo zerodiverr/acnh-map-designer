@@ -41,12 +41,16 @@ export class MapDesignerComponent implements OnInit {
         private imageImporter: ImageImporterService,
     ) {
         this.importGroup = formBuilder.group(this.IMAGE_BOUND_DEFAULT);
+        this.importGroup.valueChanges.subscribe(() => {
+            this.previewImportImage();
+        });
         this.importGroup.valueChanges.pipe(debounceTime(100)).subscribe(() => {
             this.execImportImage();
         });
         this.importImage.onload = () => {
             if (this.importImage.naturalWidth == 1280 && this.importImage.naturalHeight == 720) {
                 this.importDrawer.open();
+                this.previewImportImage();
                 this.execImportImage();
             } else {
                 this.snackBar.open('1280*720の画像を選択してください', 'OK');
@@ -99,7 +103,7 @@ export class MapDesignerComponent implements OnInit {
         input.click();
     }
 
-    execImportImage() {
+    private previewImportImage() {
         let ib = this.importGroup.value as ImageBound;
         let ctx = (this.importPreview.nativeElement as HTMLCanvasElement).getContext('2d');
         ctx.drawImage(this.importImage, 0, 0, 1280, 720);
@@ -116,6 +120,10 @@ export class MapDesignerComponent implements OnInit {
         ctx.lineTo(ib.right, ib.top);
         ctx.lineTo(ib.left, ib.top);
         ctx.fill();
+    }
+
+    private execImportImage() {
+        let ib = this.importGroup.value as ImageBound;
         this.imageImporter.importImage(this.importImage, ib);
     }
 }

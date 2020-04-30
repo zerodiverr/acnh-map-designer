@@ -4,25 +4,21 @@
     <canvas #importPreview width="1280" height="720"></canvas>
     <form [formGroup]="importGroup">
       <mat-form-field>
-        <mat-label>左</mat-label>
-        <input matInput type="number" step="1" formControlName="left" [min]="IMAGE_BOUND_DEFAULT.left-10" [max]="IMAGE_BOUND_DEFAULT.left+10"/>
-      </mat-form-field>
-      <br>
-      <mat-form-field>
         <mat-label>上</mat-label>
         <input matInput type="number" step="1" formControlName="top" [min]="IMAGE_BOUND_DEFAULT.top-10" [max]="IMAGE_BOUND_DEFAULT.top+10"/>
       </mat-form-field>
-      <br>
-      <mat-form-field>
-        <mat-label>右</mat-label>
-        <input matInput type="number" step="1" formControlName="right" [min]="IMAGE_BOUND_DEFAULT.right-10" [max]="IMAGE_BOUND_DEFAULT.right+10"/>
-      </mat-form-field>
-      <br>
       <mat-form-field>
         <mat-label>下</mat-label>
         <input matInput type="number" step="1" formControlName="bottom" [min]="IMAGE_BOUND_DEFAULT.bottom-10" [max]="IMAGE_BOUND_DEFAULT.bottom+10"/>
       </mat-form-field>
-      <br>
+      <mat-form-field>
+        <mat-label>左</mat-label>
+        <input matInput type="number" step="1" formControlName="left" [min]="IMAGE_BOUND_DEFAULT.left-10" [max]="IMAGE_BOUND_DEFAULT.left+10"/>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>右</mat-label>
+        <input matInput type="number" step="1" formControlName="right" [min]="IMAGE_BOUND_DEFAULT.right-10" [max]="IMAGE_BOUND_DEFAULT.right+10"/>
+      </mat-form-field>
       <button mat-raised-button (click)="importGroup.setValue(IMAGE_BOUND_DEFAULT);importGroup.markAsPristine();" [disabled]="importGroup.pristine">リセット</button>
     </form>
   </mat-drawer>
@@ -43,11 +39,13 @@
           </mat-button-toggle>
         </mat-button-toggle-group>
         <span style="flex-grow: 1;"></span>
-        <button mat-icon-button (click)="beginImportImage()">
+        <button mat-raised-button (click)="beginImportImage()">
           <mat-icon>upload_file</mat-icon>
+          Import Screenshot
         </button>
-        <button mat-icon-button color="warn" (click)="reset()">
+        <button mat-raised-button color="warn" (click)="reset()">
           <mat-icon>delete_forever</mat-icon>
+          Clear Map
         </button>
       </mat-toolbar-row>
     </mat-toolbar>

@@ -12,7 +12,16 @@ mat-drawer {
         width: 240px;
     }
     form {
-        margin: 10px;
+        width: 240px;
+        margin: 10px 0;
+
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+
+        mat-form-field {
+            width: 100px;
+        }
     }
 }
 
@@ -35,5 +44,9 @@ mat-toolbar {
         img {
             margin-bottom: 4px;
         }
+    }
+
+    button+button {
+        margin-left: 10px;
     }
 }
