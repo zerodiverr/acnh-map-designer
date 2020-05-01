@@ -1,10 +1,9 @@
 
-import { Component, OnInit } from '@angular/core';
-import { ViewChild, ElementRef, HostListener, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CellData, MAP_SIZE, CELL_COLOR, MapRect } from '../model/map';
 import { MapService } from '../map.service';
 
-const CELL_SIZE = 8;
+export const CELL_SIZE = 8;
 const CELL_PADDING = 2;
 
 export interface CellClickEvent {
@@ -13,20 +12,21 @@ export interface CellClickEvent {
     continuous: boolean;
 }
 
+const toHex = (color: number): string => {
+    return '#' + ('000000' + color.toString(16)).substr(-6);
+};
+
 @Component({
     selector: 'amd-map-renderer',
     templateUrl: './map-renderer.component.html',
     styleUrls: ['./map-renderer.component.less']
 })
 export class MapRendererComponent implements OnInit {
+    readonly CELL_SIZE = CELL_SIZE;
     readonly CANVAS_WIDTH = MAP_SIZE.width * CELL_SIZE;
     readonly CANVAS_HEIGHT = MAP_SIZE.height * CELL_SIZE;
     @ViewChild('mapCanvas') mapCanvas: ElementRef<HTMLCanvasElement>;
     @ViewChild('gridCanvas') gridCanvas: ElementRef<HTMLCanvasElement>;
-    @ViewChild('cursorCanvas') cursorCanvas: ElementRef<HTMLCanvasElement>;
-    @Output() cellClick = new EventEmitter<CellClickEvent>();
-    private prevX: number;
-    private prevY: number;
 
     constructor(
         private map: MapService,
@@ -59,20 +59,16 @@ export class MapRendererComponent implements OnInit {
         ctx.restore();
     }
 
-    private toHex(color: number): string {
-        return '#' + ('000000' + color.toString(16)).substr(-6);
-    }
-
     private drawCell(x: number, y: number, ctx: CanvasRenderingContext2D) {
         let cell = this.map.getCell(x, y);
         if (cell.terrain == 'SEA') {
-            ctx.fillStyle = this.toHex(CELL_COLOR.water);
+            ctx.fillStyle = toHex(CELL_COLOR.water);
             ctx.fillRect(0, 0, 1, 1);
         } else if (cell.terrain == 'SAND') {
-            ctx.fillStyle = this.toHex(CELL_COLOR.sand);
+            ctx.fillStyle = toHex(CELL_COLOR.sand);
             ctx.fillRect(0, 0, 1, 1);
         } else if (cell.terrain == 'ROCK') {
-            ctx.fillStyle = this.toHex(CELL_COLOR.rock);
+            ctx.fillStyle = toHex(CELL_COLOR.rock);
             ctx.fillRect(0, 0, 1, 1);
         } else if (cell.terrain == 'LAND') {
             if (cell.rounded && cell.feature === null) {
@@ -82,9 +78,9 @@ export class MapRendererComponent implements OnInit {
                 let w = n4.w.level == cell.level;
                 let e = n4.e.level == cell.level;
                 let s = n4.s.level == cell.level;
-                ctx.fillStyle = this.toHex(CELL_COLOR.green[cell.level - 1]);
+                ctx.fillStyle = toHex(CELL_COLOR.green[cell.level - 1]);
                 ctx.fillRect(0, 0, 1, 1);
-                ctx.fillStyle = this.toHex(CELL_COLOR.green[cell.level]);
+                ctx.fillStyle = toHex(CELL_COLOR.green[cell.level]);
                 if (s && e) {
                     ctx.fill(new Path2D('M 1 1 h -1 A 1 1 0 0 1 1 0'));
                 } else if (s && w) {
@@ -95,7 +91,7 @@ export class MapRendererComponent implements OnInit {
                     ctx.fill(new Path2D('M 0 0 h 1 A 1 1 0 0 1 0 1'));
                 }
             } else {
-                ctx.fillStyle = this.toHex(CELL_COLOR.green[cell.level]);
+                ctx.fillStyle = toHex(CELL_COLOR.green[cell.level]);
                 ctx.fillRect(0, 0, 1, 1);
             }
             if (cell.feature == 'RIVER') {
@@ -131,7 +127,7 @@ export class MapRendererComponent implements OnInit {
         const s1 = CELL_PADDING / CELL_SIZE, s2 = 1 - s1 * 2, s3 = s1 + s2;
         let n8 = this.map.getNeighbours8(x, y);
 
-        ctx.fillStyle = this.toHex(color);
+        ctx.fillStyle = toHex(color);
         if (cell.rounded) {
             if (isConnected(n8.s) && isConnected(n8.e)) {
                 ctx.fill(new Path2D(`M 1 ${s1} v ${s3} h ${-s3} Z`));
@@ -192,38 +188,5 @@ export class MapRendererComponent implements OnInit {
 
         drawSimpleGrid(1, 'rgba(255,255,255,0.1)');
         drawSimpleGrid(16, 'rgba(255,255,255,0.5)');
-    }
-
-    @HostListener('mousedown', ['$event'])
-    onMouseDown(event: MouseEvent) {
-        let x = Math.floor(event.offsetX / CELL_SIZE);
-        let y = Math.floor(event.offsetY / CELL_SIZE);
-        if (x < MAP_SIZE.width && y < MAP_SIZE.height) {
-            this.prevX = x;
-            this.prevY = y;
-            this.cellClick.emit({x: x, y: y, continuous: false});
-        }
-        event.stopPropagation();
-    }
-
-    @HostListener('mousemove', ['$event'])
-    onMouseMove(event: MouseEvent) {
-        let x = Math.floor(event.offsetX / CELL_SIZE);
-        let y = Math.floor(event.offsetY / CELL_SIZE);
-        let ctx = this.cursorCanvas.nativeElement.getContext('2d');
-        ctx.clearRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
-        if (x < MAP_SIZE.width && y < MAP_SIZE.height) {
-            ctx.lineWidth = 0.5;
-            ctx.strokeStyle = 'red';
-            ctx.strokeRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-            if (event.buttons & 1) {
-                if (this.prevX != x || this.prevY != y) {
-                    this.prevX = x;
-                    this.prevY = y;
-                    this.cellClick.emit({x: x, y: y, continuous: true});
-                }
-            }
-        }
-        event.stopPropagation();
     }
 }

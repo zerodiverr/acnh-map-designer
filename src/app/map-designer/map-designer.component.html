@@ -48,6 +48,9 @@
         </button>
       </mat-toolbar-row>
     </mat-toolbar>
-    <amd-map-renderer *ngIf="map.ready" #mapRenderer (cellClick)="cellClick($event)"></amd-map-renderer>
+    <amd-mouse-trap #mouseTrap>
+      <amd-map-renderer #mapRenderer></amd-map-renderer>
+      <canvas #cursorCanvas [width]="mapRenderer.CANVAS_WIDTH" [height]="mapRenderer.CANVAS_HEIGHT"></canvas>
+    </amd-mouse-trap>
   </mat-drawer-content>
 </mat-drawer-container>

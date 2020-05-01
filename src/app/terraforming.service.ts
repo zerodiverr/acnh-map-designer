@@ -9,7 +9,7 @@ import { MapService } from './map.service';
  */
 export interface TerraformingTool {
     available(x: number, y: number): boolean;
-    apply(x: number, y: number, continuous: boolean): void;
+    apply(x: number, y: number): void;
 }
 
 
@@ -93,12 +93,10 @@ class CliffRounder extends MapToolBase implements TerraformingTool {
         }).length == 2 && n4.n.level != n4.s.level;
     }
 
-    public apply(x: number, y: number, continuous: boolean): void {
-        if (!continuous) {
-            let cell = this.map.getCell(x, y);
-            cell.rounded = true;
-            this.map.setCell(x, y, cell);
-        }
+    public apply(x: number, y: number): void {
+        let cell = this.map.getCell(x, y);
+        cell.rounded = true;
+        this.map.setCell(x, y, cell);
     }
 }
 
@@ -135,7 +133,7 @@ class CliffBuilder extends MapToolBase implements TerraformingTool {
         });
     }
 
-    public apply(x: number, y: number, _: boolean): void {
+    public apply(x: number, y: number): void {
         // TODO 周囲の処理
         let cell = this.map.getCell(x, y);
         cell.level++;
@@ -185,7 +183,7 @@ class CliffCollapser extends MapToolBase implements TerraformingTool {
         });
     }
 
-    public apply(x: number, y: number, _: boolean): void {
+    public apply(x: number, y: number): void {
         // TODO 周囲の処理
         let cell = this.map.getCell(x, y);
         cell.level--;
@@ -230,22 +228,20 @@ class RiverRounder extends MapToolBase implements TerraformingTool {
         }).length == 2 && isConnected(n4.n) != isConnected(n4.s);
     }
 
-    public apply(x: number, y: number, continuous: boolean): void {
-        if (!continuous) {
-            let cell = this.map.getCell(x, y);
-            cell.rounded = true;
-            cell.feature = 'RIVER';
-            this.map.setCell(x, y, cell, 3);
+    public apply(x: number, y: number): void {
+        let cell = this.map.getCell(x, y);
+        cell.rounded = true;
+        cell.feature = 'RIVER';
+        this.map.setCell(x, y, cell, 3);
 
-            let n4 = this.map.getNeighbours4(x, y);
-            Object.values(n4).forEach((n: CellData) => {
-                // 4隣接の丸い川岸を崩す
-                if (n.terrain == 'LAND' && n.feature == 'RIVER' && n.rounded) {
-                    n.rounded = false;
-                    this.map.setCell(n.x, n.y, n, 3);
-                }
-            });
-        }
+        let n4 = this.map.getNeighbours4(x, y);
+        Object.values(n4).forEach((n: CellData) => {
+            // 4隣接の丸い川岸を崩す
+            if (n.terrain == 'LAND' && n.feature == 'RIVER' && n.rounded) {
+                n.rounded = false;
+                this.map.setCell(n.x, n.y, n, 3);
+            }
+        });
     }
 }
 
@@ -293,7 +289,7 @@ class RiverDigger extends MapToolBase implements TerraformingTool {
         return false;
     }
 
-    public apply(x: number, y: number, _: boolean): void {
+    public apply(x: number, y: number): void {
         // TODO 周囲の処理
         let cell = this.map.getCell(x, y);
         cell.feature = 'RIVER';
@@ -324,7 +320,7 @@ class RiverReclaimer extends MapToolBase implements TerraformingTool {
         return conds.every(c => c);
     }
 
-    public apply(x: number, y: number, _: boolean): void {
+    public apply(x: number, y: number): void {
         // TODO 周囲の処理
         let cell = this.map.getCell(x, y);
         cell.feature = null;
@@ -358,7 +354,7 @@ class PathPaver extends MapToolBase implements TerraformingTool {
         return conds.every(c => c);
     }
 
-    public apply(x: number, y: number, _: boolean): void {
+    public apply(x: number, y: number): void {
         let cell = this.map.getCell(x, y);
         cell.feature = 'PATH';
         this.map.setCell(x, y, cell, 3);
@@ -378,7 +374,7 @@ class PathPeeler extends MapToolBase implements TerraformingTool {
         return conds.every(c => c);
     }
 
-    public apply(x: number, y: number, _: boolean): void {
+    public apply(x: number, y: number): void {
         let cell = this.map.getCell(x, y);
         cell.feature = null;
         cell.rounded = false;

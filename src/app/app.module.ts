@@ -17,12 +17,14 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MouseTrapComponent } from './mouse-trap/mouse-trap.component';
 
 @NgModule({
     declarations: [
         AppComponent,
         MapDesignerComponent,
         MapRendererComponent,
+        MouseTrapComponent,
     ],
     imports: [
         BrowserModule,
