@@ -1,6 +1,6 @@
 
 import { distinctUntilChanged, map, merge } from 'rxjs/operators';
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { MatButtonToggleGroup, MatButtonToggleChange } from '@angular/material/button-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MapService } from '../map.service';
@@ -104,5 +104,20 @@ export class MapDesignerComponent implements OnInit {
             reader.readAsDataURL(input.files[0]);
         };
         input.click();
+    }
+
+    @HostListener('window:keydown', ['$event'])
+    onKeyDown(event: KeyboardEvent) {
+        switch (event.key) {
+            case 'r':
+                this.tool.value = 'river';
+                break;
+            case 'c':
+                this.tool.value = 'cliff';
+                break;
+            case 'p':
+                this.tool.value = 'path';
+                break;
+        }
     }
 }

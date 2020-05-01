@@ -3,13 +3,13 @@
   <mat-toolbar-row>
     <span>ACNH Map Designer</span>
     <mat-button-toggle-group #tool="matButtonToggleGroup" [value]="toolValue">
-      <mat-button-toggle value="river">
+      <mat-button-toggle value="river" matTooltip="(R)iver">
         <img src="assets/river_t.png" width="36" height="36"/>
       </mat-button-toggle>
-      <mat-button-toggle value="cliff">
+      <mat-button-toggle value="cliff" matTooltip="(C)liff">
         <img src="assets/cliff_t.png" width="36" height="36"/>
       </mat-button-toggle>
-      <mat-button-toggle value="path">
+      <mat-button-toggle value="path" matTooltip="(P)ath">
         <img src="assets/path_t.png" width="36" height="36"/>
       </mat-button-toggle>
     </mat-button-toggle-group>
