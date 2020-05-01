@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { MAP_SIZE, CELL_COLOR } from './model/map';
 import { MapService } from './map.service';
 
+const CANVAS_SCALE = 8;
 const SCREENSHOT_MAP_BOUND = {
     left: 354.2,
     top: 117.7,
@@ -10,10 +11,42 @@ const SCREENSHOT_MAP_BOUND = {
     bottom: 629.7,
 };
 
-type RGB = [number, number, number];
 const EDGE_COLORS = [CELL_COLOR.rock, CELL_COLOR.sand, CELL_COLOR.water];
 const COAST_COLORS = EDGE_COLORS.concat([CELL_COLOR.path, CELL_COLOR.animals_home, CELL_COLOR.players_home]).concat(CELL_COLOR.green).concat(CELL_COLOR.facility);
 const INLAND_COLORS = COAST_COLORS.slice(2);
+
+/**
+ * 一番近い既知の色を調べる
+ */
+class ColorCorrector {
+    private colors: number[];
+    private cache = {};
+
+    constructor(colors: number[]) {
+        this.colors = colors.slice();
+    }
+
+    correct(color: number): number {
+        if (this.cache[color] !== undefined) {
+            return this.cache[color];
+        }
+        this.cache[color] = this.correctNew(color);
+        return this.cache[color];
+    }
+
+    private correctNew(color: number): number {
+        let scores = this.colors.map(c => {
+            let score = 0;
+            score += Math.pow((color >> 16 & 0xFF) - (c >> 16 & 0xFF), 2);
+            score += Math.pow((color >> 8 & 0xFF) - (c >> 8 & 0xFF), 2);
+            score += Math.pow((color & 0xFF) - (c & 0xFF), 2);
+            return score;
+        });
+        let minScore = Math.min.apply(null, scores);
+        let minIndex = scores.indexOf(minScore);
+        return this.colors[minIndex];
+    }
+}
 
 
 @Injectable({
@@ -22,35 +55,30 @@ const INLAND_COLORS = COAST_COLORS.slice(2);
 export class ImageImporterService {
     public sourceCanvas: HTMLCanvasElement;
 
+    private edgeCorrector = new ColorCorrector(EDGE_COLORS);
+    private coastCorrector = new ColorCorrector(COAST_COLORS);
+    private inlandCorrector = new ColorCorrector(INLAND_COLORS);
+
     constructor(
         private map: MapService
     ) {
         this.sourceCanvas = document.createElement('canvas');
+        this.sourceCanvas.width = MAP_SIZE.width * CANVAS_SCALE;
+        this.sourceCanvas.height = MAP_SIZE.height * CANVAS_SCALE;
     }
 
-    public importImage(image: HTMLImageElement) {
-        const ssmb = SCREENSHOT_MAP_BOUND;
-        const CANVAS_SCALE = 8;
+    // TODO 5点比較による角情報の維持
+    // TODO 動的探索による川や道の高さの推定（高さ不明セルのコレクションを作る→近傍の高さをコピー）
 
-        let canvas = this.sourceCanvas;
-        canvas.width = MAP_SIZE.width * CANVAS_SCALE;
-        canvas.height = MAP_SIZE.height * CANVAS_SCALE;
-
-        let ctx = canvas.getContext('2d');
-        ctx.scale(MAP_SIZE.width, MAP_SIZE.height);
-        ctx.scale(1 / (ssmb.right - ssmb.left), 1 / (ssmb.bottom - ssmb.top));
-        ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
-        ctx.translate(-ssmb.left, -ssmb.top);
-        ctx.drawImage(image, 0, 0);
-
+    importImage(image: HTMLImageElement) {
+        let id = this.loadToCanvas(image);
         this.map.reset();
 
-        let pd = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        let getPixel = (x: number, y: number): RGB => {
+        let getPixel = (x: number, y: number): number => {
             let ix = Math.floor(x * CANVAS_SCALE);
             let iy = Math.floor(y * CANVAS_SCALE);
-            let i = (iy * canvas.width + ix) * 4;
-            return [pd.data[i + 0], pd.data[i + 1], pd.data[i + 2]];
+            let i = (iy * id.width + ix) * 4;
+            return (id.data[i + 0] << 16) | (id.data[i + 1] << 8) | id.data[i + 2];
         };
 
         for (let y=0; y<MAP_SIZE.height; y++) {
@@ -60,16 +88,16 @@ export class ImageImporterService {
                 cell.feature = null;
                 cell.rounded = false;
 
-                let colors: number[];
+                let centerColor = getPixel(x + 0.5, y + 0.5);
+                centerColor |= 0x010101; // キャッシュヒット率を上げる
                 if (this.isMapEdge(x, y, 1)) {
-                    colors = EDGE_COLORS;
+                    centerColor = this.edgeCorrector.correct(centerColor);
                 } else if (this.isMapEdge(x, y, 13)) {
-                    colors = COAST_COLORS;
+                    centerColor = this.coastCorrector.correct(centerColor);
                 } else {
-                    colors = INLAND_COLORS;
+                    centerColor = this.inlandCorrector.correct(centerColor);
                 }
 
-                let centerColor = this.getNearestColor(getPixel(x + 0.5, y + 0.5), colors);
                 switch (centerColor) {
                     case CELL_COLOR.water:
                         if (this.isMapEdge(x, y, 13)) {
@@ -115,17 +143,16 @@ export class ImageImporterService {
         this.map.invalidate({x: 0, y: 0, width: MAP_SIZE.width, height: MAP_SIZE.height});
     }
 
-    private getNearestColor(rgb: RGB, colors: number[]): number {
-        let scores = colors.map(color => {
-            let score = 0;
-            score += Math.pow(rgb[0] - (color >> 16 & 0xFF), 2);
-            score += Math.pow(rgb[1] - (color >> 8 & 0xFF), 2);
-            score += Math.pow(rgb[2] - (color & 0xFF), 2);
-            return score;
-        });
-        let minScore = Math.min.apply(null, scores);
-        let minIndex = scores.indexOf(minScore);
-        return colors[minIndex];
+    private loadToCanvas(image: HTMLImageElement) {
+        const ssmb = SCREENSHOT_MAP_BOUND;
+        let canvas = this.sourceCanvas;
+        let ctx = canvas.getContext('2d');
+        ctx.scale(MAP_SIZE.width, MAP_SIZE.height);
+        ctx.scale(1 / (ssmb.right - ssmb.left), 1 / (ssmb.bottom - ssmb.top));
+        ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
+        ctx.translate(-ssmb.left, -ssmb.top);
+        ctx.drawImage(image, 0, 0);
+        return ctx.getImageData(0, 0, canvas.width, canvas.height);
     }
 
     private isMapEdge(x: number, y: number, dist: number) : boolean {
