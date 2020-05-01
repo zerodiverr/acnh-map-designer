@@ -20,34 +20,34 @@ const INLAND_COLORS = COAST_COLORS.slice(2);
     providedIn: 'root'
 })
 export class ImageImporterService {
+    public sourceCanvas: HTMLCanvasElement;
 
     constructor(
         private map: MapService
-    ) { }
+    ) {
+        this.sourceCanvas = document.createElement('canvas');
+    }
 
     public importImage(image: HTMLImageElement, imageBound: ImageBound) {
-        let ibx = imageBound.left;
-        let iby = imageBound.top;
-        let ibw = imageBound.right - imageBound.left;
-        let ibh = imageBound.bottom - imageBound.top;
+        const CANVAS_SCALE = 8;
 
-        // TODO
-        // MAP_SIZEの3x3倍くらいのCanvasにスクリーンショットをtransformして描画
-        // getPixelでは整数座標を扱う
-
-        let canvas = document.createElement('canvas');
-        canvas.width = image.width;
-        canvas.height = image.height;
+        let canvas = this.sourceCanvas;
+        canvas.width = MAP_SIZE.width * CANVAS_SCALE;
+        canvas.height = MAP_SIZE.height * CANVAS_SCALE;
 
         let ctx = canvas.getContext('2d');
+        ctx.scale(MAP_SIZE.width, MAP_SIZE.height);
+        ctx.scale(1 / (imageBound.right - imageBound.left), 1 / (imageBound.bottom - imageBound.top));
+        ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
+        ctx.translate(-imageBound.left, -imageBound.top);
         ctx.drawImage(image, 0, 0);
-        let pd = ctx.getImageData(0, 0, image.width, image.height);
 
         this.map.reset();
 
+        let pd = ctx.getImageData(0, 0, canvas.width, canvas.height);
         let getPixel = (x: number, y: number): RGB => {
-            let ix = Math.floor(ibx + x * ibw / MAP_SIZE.width);
-            let iy = Math.floor(iby + y * ibh / MAP_SIZE.height);
+            let ix = Math.floor(x * CANVAS_SCALE);
+            let iy = Math.floor(y * CANVAS_SCALE);
             let i = (iy * canvas.width + ix) * 4;
             return [pd.data[i + 0], pd.data[i + 1], pd.data[i + 2]];
         };
@@ -76,13 +76,6 @@ export class ImageImporterService {
                         } else {
                             cell.terrain = 'LAND';
                             cell.feature = 'RIVER';
-                            // let crossColors = [
-                            //     this.getNearestColor(getPixel(x + 0.5, y + 0.25), colors),
-                            //     this.getNearestColor(getPixel(x + 0.25, y + 0.5), colors),
-                            //     this.getNearestColor(getPixel(x + 0.75, y + 0.5), colors),
-                            //     this.getNearestColor(getPixel(x + 0.5, y + 0.75), colors),
-                            // ];
-                            // cell.rounded = crossColors.filter(c => c == CELL_COLOR.water).length == 2;
                         }
                         break;
                     case CELL_COLOR.sand:
