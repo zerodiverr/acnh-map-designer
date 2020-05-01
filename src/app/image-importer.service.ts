@@ -3,12 +3,12 @@ import { Injectable } from '@angular/core';
 import { MAP_SIZE, CELL_COLOR } from './model/map';
 import { MapService } from './map.service';
 
-export interface ImageBound {
-    left: number;
-    top: number;
-    right: number;
-    bottom: number;
-}
+const SCREENSHOT_MAP_BOUND = {
+    left: 354.2,
+    top: 117.7,
+    right: 951.7,
+    bottom: 629.7,
+};
 
 type RGB = [number, number, number];
 const EDGE_COLORS = [CELL_COLOR.rock, CELL_COLOR.sand, CELL_COLOR.water];
@@ -28,7 +28,8 @@ export class ImageImporterService {
         this.sourceCanvas = document.createElement('canvas');
     }
 
-    public importImage(image: HTMLImageElement, imageBound: ImageBound) {
+    public importImage(image: HTMLImageElement) {
+        const ssmb = SCREENSHOT_MAP_BOUND;
         const CANVAS_SCALE = 8;
 
         let canvas = this.sourceCanvas;
@@ -37,9 +38,9 @@ export class ImageImporterService {
 
         let ctx = canvas.getContext('2d');
         ctx.scale(MAP_SIZE.width, MAP_SIZE.height);
-        ctx.scale(1 / (imageBound.right - imageBound.left), 1 / (imageBound.bottom - imageBound.top));
+        ctx.scale(1 / (ssmb.right - ssmb.left), 1 / (ssmb.bottom - ssmb.top));
         ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
-        ctx.translate(-imageBound.left, -imageBound.top);
+        ctx.translate(-ssmb.left, -ssmb.top);
         ctx.drawImage(image, 0, 0);
 
         this.map.reset();
