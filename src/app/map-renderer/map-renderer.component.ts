@@ -1,6 +1,6 @@
 
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { CellData, MAP_SIZE, CELL_COLOR, MapRect } from '../model/map';
+import { CellData, MAP_SIZE, COLOR, MapRect } from '../model/map';
 import { MapService } from '../map.service';
 
 export const CELL_SIZE = 8;
@@ -62,13 +62,13 @@ export class MapRendererComponent implements OnInit {
     private drawCell(x: number, y: number, ctx: CanvasRenderingContext2D) {
         let cell = this.map.getCell(x, y);
         if (cell.terrain == 'SEA') {
-            ctx.fillStyle = toHex(CELL_COLOR.water);
+            ctx.fillStyle = toHex(COLOR.water);
             ctx.fillRect(0, 0, 1, 1);
         } else if (cell.terrain == 'SAND') {
-            ctx.fillStyle = toHex(CELL_COLOR.sand);
+            ctx.fillStyle = toHex(COLOR.sand);
             ctx.fillRect(0, 0, 1, 1);
         } else if (cell.terrain == 'ROCK') {
-            ctx.fillStyle = toHex(CELL_COLOR.rock);
+            ctx.fillStyle = toHex(COLOR.rock);
             ctx.fillRect(0, 0, 1, 1);
         } else if (cell.terrain == 'LAND') {
             if (cell.rounded && cell.feature === null) {
@@ -78,9 +78,9 @@ export class MapRendererComponent implements OnInit {
                 let w = n4.w.level == cell.level;
                 let e = n4.e.level == cell.level;
                 let s = n4.s.level == cell.level;
-                ctx.fillStyle = toHex(CELL_COLOR.green[cell.level - 1]);
+                ctx.fillStyle = toHex(COLOR.green[cell.level - 1]);
                 ctx.fillRect(0, 0, 1, 1);
-                ctx.fillStyle = toHex(CELL_COLOR.green[cell.level]);
+                ctx.fillStyle = toHex(COLOR.green[cell.level]);
                 if (s && e) {
                     ctx.fill(new Path2D('M 1 1 h -1 A 1 1 0 0 1 1 0'));
                 } else if (s && w) {
@@ -91,7 +91,7 @@ export class MapRendererComponent implements OnInit {
                     ctx.fill(new Path2D('M 0 0 h 1 A 1 1 0 0 1 0 1'));
                 }
             } else {
-                ctx.fillStyle = toHex(CELL_COLOR.green[cell.level]);
+                ctx.fillStyle = toHex(COLOR.green[cell.level]);
                 ctx.fillRect(0, 0, 1, 1);
             }
             if (cell.feature == 'RIVER') {
@@ -112,7 +112,7 @@ export class MapRendererComponent implements OnInit {
             let c3 = n.terrain == 'SEA';
             return c1 || c2 || c3;
         };
-        this.drawFeature(x, y, ctx, CELL_COLOR.water, cell, isConnected);
+        this.drawFeature(x, y, ctx, COLOR.water, cell, isConnected);
     }
 
     private drawPath(x: number, y: number, ctx: CanvasRenderingContext2D, cell: CellData) {
@@ -120,7 +120,7 @@ export class MapRendererComponent implements OnInit {
             // 道と繋がってるかどうか
             return n.terrain == 'LAND' && n.level == cell.level && n.feature == 'PATH';
         };
-        this.drawFeature(x, y, ctx, CELL_COLOR.path, cell, isConnected);
+        this.drawFeature(x, y, ctx, COLOR.path, cell, isConnected);
     }
 
     private drawFeature(x: number, y: number, ctx: CanvasRenderingContext2D, color: number, cell: CellData, isConnected: (c: CellData) => boolean) {

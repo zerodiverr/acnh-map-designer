@@ -8,7 +8,7 @@ export const MAP_SIZE = {
 
 export const MAX_LEVEL = 3;
 
-export const CELL_COLOR = {
+export const COLOR = {
     water: 0x79d7bf,
     sand: 0xeee6a3,
     rock: 0x757686,

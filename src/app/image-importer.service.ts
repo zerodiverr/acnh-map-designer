@@ -1,6 +1,6 @@
 
 import { Injectable } from '@angular/core';
-import { MAP_SIZE, CELL_COLOR } from './model/map';
+import { MAP_SIZE, COLOR, CellData, Terrain, Level, Feature } from './model/map';
 import { MapService } from './map.service';
 
 const CANVAS_SCALE = 8;
@@ -11,40 +11,72 @@ const SCREENSHOT_MAP_BOUND = {
     bottom: 629.7,
 };
 
-const EDGE_COLORS = [CELL_COLOR.rock, CELL_COLOR.sand, CELL_COLOR.water];
-const COAST_COLORS = EDGE_COLORS.concat([CELL_COLOR.path, CELL_COLOR.animals_home, CELL_COLOR.players_home]).concat(CELL_COLOR.green).concat(CELL_COLOR.facility);
-const INLAND_COLORS = COAST_COLORS.slice(2);
+
+interface PatternRule {
+    pattern: number[];
+    cell: CellData;
+}
+
+const color2Pattern = (color: number): number[] => {
+    return [
+        color >> 16 & 0xFF,
+        color >> 8 & 0xFF,
+        color & 0xFF
+    ];
+};
+
 
 /**
- * 一番近い既知の色を調べる
+ * 一番近いパターンを調べ、対応したセルを返す
  */
-class ColorCorrector {
-    private colors: number[];
-    private cache = {};
+class PatternMatcher {
+    private rules: PatternRule[] = [];
 
-    constructor(colors: number[]) {
-        this.colors = colors.slice();
+    addRule(color: number, terrain: Terrain, level: Level=0, feature: Feature=null) {
+        let p = color2Pattern(color);
+        let cell = {
+            x: -1,
+            y: -1,
+            terrain: terrain,
+            level: level,
+            feature: feature,
+            rounded: false,
+        };
+        this.rules.push({pattern: p.concat(p).concat(p).concat(p).concat(p), cell: cell});
     }
 
-    correct(color: number): number {
-        if (this.cache[color] !== undefined) {
-            return this.cache[color];
-        }
-        this.cache[color] = this.correctNew(color);
-        return this.cache[color];
+    addCornerRules(inColor: number, outColor: number, terrain: Terrain, level: Level=0, feature: Feature=null) {
+        let ip = color2Pattern(inColor), op = color2Pattern(outColor);
+        let cell = {
+            x: -1,
+            y: -1,
+            terrain: terrain,
+            level: level,
+            feature: feature,
+            rounded: true,
+        };
+        this.rules.push({pattern: ip.concat(op).concat(op).concat(ip).concat(ip), cell: cell});
+        this.rules.push({pattern: ip.concat(op).concat(ip).concat(op).concat(ip), cell: cell});
+        this.rules.push({pattern: ip.concat(ip).concat(op).concat(ip).concat(op), cell: cell});
+        this.rules.push({pattern: ip.concat(ip).concat(ip).concat(op).concat(op), cell: cell});
+        this.rules.push({pattern: op.concat(op).concat(op).concat(ip).concat(ip), cell: cell});
+        this.rules.push({pattern: op.concat(op).concat(ip).concat(op).concat(ip), cell: cell});
+        this.rules.push({pattern: op.concat(ip).concat(op).concat(ip).concat(op), cell: cell});
+        this.rules.push({pattern: op.concat(ip).concat(ip).concat(op).concat(op), cell: cell});
     }
 
-    private correctNew(color: number): number {
-        let scores = this.colors.map(c => {
-            let score = 0;
-            score += Math.pow((color >> 16 & 0xFF) - (c >> 16 & 0xFF), 2);
-            score += Math.pow((color >> 8 & 0xFF) - (c >> 8 & 0xFF), 2);
-            score += Math.pow((color & 0xFF) - (c & 0xFF), 2);
-            return score;
+    match(pattern: number[]): CellData {
+        let lowest = this.rules.map(rule => {
+            let score = pattern.map((v, i) => {
+                return Math.pow(v - rule.pattern[i], 2);
+            }).reduce((a, b) => {
+                return a + b;
+            });
+            return {score: score, cell: rule.cell};
+        }).reduce((a, b) => {
+            return a.score < b.score ? a : b;
         });
-        let minScore = Math.min.apply(null, scores);
-        let minIndex = scores.indexOf(minScore);
-        return this.colors[minIndex];
+        return lowest.cell;
     }
 }
 
@@ -55,9 +87,9 @@ class ColorCorrector {
 export class ImageImporterService {
     public sourceCanvas: HTMLCanvasElement;
 
-    private edgeCorrector = new ColorCorrector(EDGE_COLORS);
-    private coastCorrector = new ColorCorrector(COAST_COLORS);
-    private inlandCorrector = new ColorCorrector(INLAND_COLORS);
+    private edgeMatcher = new PatternMatcher();
+    private coastMatcher = new PatternMatcher();
+    private inlandMatcher = new PatternMatcher();
 
     constructor(
         private map: MapService
@@ -65,77 +97,64 @@ export class ImageImporterService {
         this.sourceCanvas = document.createElement('canvas');
         this.sourceCanvas.width = MAP_SIZE.width * CANVAS_SCALE;
         this.sourceCanvas.height = MAP_SIZE.height * CANVAS_SCALE;
+
+        this.edgeMatcher.addRule(COLOR.rock, 'ROCK');
+        this.edgeMatcher.addRule(COLOR.sand, 'SAND');
+        this.edgeMatcher.addRule(COLOR.water, 'SEA');
+
+        this.coastMatcher.addRule(COLOR.rock, 'ROCK');
+        this.coastMatcher.addRule(COLOR.sand, 'SAND');
+        this.coastMatcher.addRule(COLOR.water, 'SEA');
+        this.coastMatcher.addRule(COLOR.green[0], 'LAND', 0);
+        this.coastMatcher.addRule(COLOR.green[1], 'LAND', 1);
+        this.coastMatcher.addRule(COLOR.green[2], 'LAND', 2);
+        this.coastMatcher.addRule(COLOR.green[3], 'LAND', 3);
+        this.coastMatcher.addRule(COLOR.path, 'LAND', 0, 'PATH');
+        this.coastMatcher.addCornerRules(COLOR.green[1], COLOR.green[0], 'LAND', 1, null);
+        this.coastMatcher.addCornerRules(COLOR.green[2], COLOR.green[1], 'LAND', 2, null);
+        this.coastMatcher.addCornerRules(COLOR.green[3], COLOR.green[2], 'LAND', 3, null);
+
+        this.inlandMatcher.addRule(COLOR.green[0], 'LAND', 0);
+        this.inlandMatcher.addRule(COLOR.green[1], 'LAND', 1);
+        this.inlandMatcher.addRule(COLOR.green[2], 'LAND', 2);
+        this.inlandMatcher.addRule(COLOR.green[3], 'LAND', 3);
+        this.inlandMatcher.addCornerRules(COLOR.green[1], COLOR.green[0], 'LAND', 1, null);
+        this.inlandMatcher.addCornerRules(COLOR.green[2], COLOR.green[1], 'LAND', 2, null);
+        this.inlandMatcher.addCornerRules(COLOR.green[3], COLOR.green[2], 'LAND', 3, null);
+        this.inlandMatcher.addRule(COLOR.water, 'LAND', 0, 'RIVER');
+        this.inlandMatcher.addCornerRules(COLOR.water, COLOR.green[0], 'LAND', 0, 'RIVER');
+        // this.inlandMatcher.addCornerRules(COLOR.water, COLOR.green[1], 'LAND', 1, 'RIVER');
+        // this.inlandMatcher.addCornerRules(COLOR.water, COLOR.green[2], 'LAND', 2, 'RIVER');
+        this.inlandMatcher.addRule(COLOR.path, 'LAND', 0, 'PATH');
     }
 
-    // TODO 5点比較による角情報の維持
     // TODO 動的探索による川や道の高さの推定（高さ不明セルのコレクションを作る→近傍の高さをコピー）
 
     importImage(image: HTMLImageElement) {
         let id = this.loadToCanvas(image);
         this.map.reset();
 
-        let getPixel = (x: number, y: number): number => {
+        let getPixel = (x: number, y: number): number[] => {
             let ix = Math.floor(x * CANVAS_SCALE);
             let iy = Math.floor(y * CANVAS_SCALE);
             let i = (iy * id.width + ix) * 4;
-            return (id.data[i + 0] << 16) | (id.data[i + 1] << 8) | id.data[i + 2];
+            return [id.data[i + 0], id.data[i + 1], id.data[i + 2]];
         };
 
         for (let y=0; y<MAP_SIZE.height; y++) {
             for (let x=0; x<MAP_SIZE.width; x++) {
-                let cell = this.map.getCell(x, y);
-                cell.level = 0;
-                cell.feature = null;
-                cell.rounded = false;
-
-                let centerColor = getPixel(x + 0.5, y + 0.5);
-                centerColor |= 0x010101; // キャッシュヒット率を上げる
+                let pat = getPixel(x + 0.5, y + 0.5);
+                pat = pat.concat(getPixel(x + 0.5, y + 0.25));
+                pat = pat.concat(getPixel(x + 0.25, y + 0.5));
+                pat = pat.concat(getPixel(x + 0.75, y + 0.5));
+                pat = pat.concat(getPixel(x + 0.5, y + 0.75));
+                let cell: CellData;
                 if (this.isMapEdge(x, y, 1)) {
-                    centerColor = this.edgeCorrector.correct(centerColor);
+                    cell = this.edgeMatcher.match(pat);
                 } else if (this.isMapEdge(x, y, 13)) {
-                    centerColor = this.coastCorrector.correct(centerColor);
+                    cell = this.coastMatcher.match(pat);
                 } else {
-                    centerColor = this.inlandCorrector.correct(centerColor);
-                }
-
-                switch (centerColor) {
-                    case CELL_COLOR.water:
-                        if (this.isMapEdge(x, y, 13)) {
-                            cell.terrain = 'SEA';
-                        } else {
-                            cell.terrain = 'LAND';
-                            cell.feature = 'RIVER';
-                        }
-                        break;
-                    case CELL_COLOR.sand:
-                        cell.terrain = 'SAND';
-                        break;
-                    case CELL_COLOR.rock:
-                        cell.terrain = 'ROCK';
-                        break;
-                    case CELL_COLOR.path:
-                        cell.terrain = 'LAND';
-                        cell.feature = 'PATH';
-                        break;
-                    case CELL_COLOR.animals_home:
-                    case CELL_COLOR.players_home:
-                    case CELL_COLOR.facility[0]:
-                    case CELL_COLOR.facility[1]:
-                    case CELL_COLOR.green[0]:
-                        cell.terrain = 'LAND';
-                        break;
-                    case CELL_COLOR.green[1]:
-                        cell.terrain = 'LAND';
-                        cell.level = 1;
-                        break;
-                    case CELL_COLOR.green[2]:
-                        cell.terrain = 'LAND';
-                        cell.level = 2;
-                        break;
-                    case CELL_COLOR.green[3]:
-                        cell.terrain = 'LAND';
-                        cell.level = 3;
-                        break;
+                    cell = this.inlandMatcher.match(pat);
                 }
                 this.map.setCell(x, y, cell, 0);
             }
@@ -147,11 +166,13 @@ export class ImageImporterService {
         const ssmb = SCREENSHOT_MAP_BOUND;
         let canvas = this.sourceCanvas;
         let ctx = canvas.getContext('2d');
+        ctx.save();
         ctx.scale(MAP_SIZE.width, MAP_SIZE.height);
         ctx.scale(1 / (ssmb.right - ssmb.left), 1 / (ssmb.bottom - ssmb.top));
         ctx.scale(CANVAS_SCALE, CANVAS_SCALE);
         ctx.translate(-ssmb.left, -ssmb.top);
         ctx.drawImage(image, 0, 0);
+        ctx.restore();
         return ctx.getImageData(0, 0, canvas.width, canvas.height);
     }
 
